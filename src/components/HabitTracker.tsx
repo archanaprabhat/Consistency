@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from "react";
 import {
   ChevronLeft,
@@ -28,9 +30,9 @@ export default function HabitTracker() {
 
   // Load habits and theme preference from localStorage on component mount
   useEffect(() => {
+    if(typeof window !== "undefined"){
     const savedHabits = localStorage.getItem("habits");
     const savedTheme = localStorage.getItem("darkMode");
-
     if (savedHabits) {
       try {
         setHabits(JSON.parse(savedHabits));
@@ -51,6 +53,7 @@ export default function HabitTracker() {
     }
 
     setIsLoading(false);
+  }
   }, []);
 
   // Save habits to localStorage whenever they change
