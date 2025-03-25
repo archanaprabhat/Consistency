@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useState, useEffect } from "react";
 import {
@@ -20,8 +20,6 @@ export default function HabitTracker() {
   const [darkMode, setDarkMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
- 
-  
   const today = new Date();
   const isCurrentMonth =
     today.getMonth() === currentDate.getMonth() &&
@@ -30,30 +28,29 @@ export default function HabitTracker() {
 
   // Load habits and theme preference from localStorage on component mount
   useEffect(() => {
-    if(typeof window !== "undefined"){
-    const savedHabits = localStorage.getItem("habits");
-    const savedTheme = localStorage.getItem("darkMode");
-    if (savedHabits) {
-      try {
-        setHabits(JSON.parse(savedHabits));
-      } catch (e) {
-        console.error("Error parsing saved habits:", e);
-        setHabits([]);
+    if (typeof window !== "undefined") {
+      const savedHabits = localStorage.getItem("habits");
+      const savedTheme = localStorage.getItem("darkMode");
+      if (savedHabits) {
+        try {
+          setHabits(JSON.parse(savedHabits));
+        } catch (e) {
+          console.error("Error parsing saved habits:", e);
+          setHabits([]);
+        }
       }
-    }
 
-    if (savedTheme) {
-      setDarkMode(savedTheme === "true");
-    } else {
-      // Check user's system preference for dark mode
-      const prefersDark =
-        window.matchMedia() &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches;
-      setDarkMode(prefersDark);
-    }
+      if (savedTheme) {
+        setDarkMode(savedTheme === "true");
+      } else {
+        // Check user's system preference for dark mode
+        const prefersDark =
+          window.matchMedia("(prefers-color-scheme: dark)").matches;
+        setDarkMode(prefersDark);
+      }
 
-    setIsLoading(false);
-  }
+      setIsLoading(false);
+    }
   }, []);
 
   // Save habits to localStorage whenever they change
