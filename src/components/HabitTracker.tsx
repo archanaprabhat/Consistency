@@ -86,7 +86,7 @@ export default function HabitTracker() {
     0
   ).getDate();
 
-  const changeMonth = (offset) => {
+  const changeMonth = (offset: number) => {
     const newDate = new Date(currentDate);
     newDate.setMonth(newDate.getMonth() + offset);
     setCurrentDate(newDate);
