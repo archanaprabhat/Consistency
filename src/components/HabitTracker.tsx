@@ -13,10 +13,16 @@ import {
   Calendar,
 } from "lucide-react";
 
+interface Habit {
+  id: number;
+  name: string;
+  monthlyChecked: Record<string, Record<number, boolean>>;
+}
+
 export default function HabitTracker() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [newHabit, setNewHabit] = useState("");
-  const [habits, setHabits] = useState([]);
+  const [habits, setHabits] = useState<Habit[]>([]);
   const [darkMode, setDarkMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
