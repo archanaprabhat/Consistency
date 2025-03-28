@@ -121,7 +121,7 @@ export default function HabitTracker() {
   const getMonthKey = () =>
     `${currentDate.getFullYear()} - ${currentDate.getMonth() + 1}`;
 
-  const toggleDay = (habitIndex, dayIndex) => {
+  const toggleDay = (habitIndex: number, dayIndex: number) => {
     const newHabits = [...habits];
     const monthKey = getMonthKey();
     if (!newHabits[habitIndex].monthlyChecked[monthKey]) {
@@ -134,7 +134,7 @@ export default function HabitTracker() {
     setHabits(newHabits);
   };
 
-  const deleteHabit = (id) => {
+  const deleteHabit = (id:number) => {
     setHabits(habits.filter((h) => h.id !== id));
   };
 
