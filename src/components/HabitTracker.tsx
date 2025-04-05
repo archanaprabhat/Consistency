@@ -28,7 +28,7 @@ export default function HabitTracker() {
   const [darkMode, setDarkMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const emojiRef = useRef(null)
+  const emojiRef = useRef<HTMLDivElement>(null);
 
   const today = new Date();
   const isCurrentMonth =
@@ -153,16 +153,23 @@ export default function HabitTracker() {
     setShowEmojiPicker(!showEmojiPicker);
   };
   
-  useEffect(()=> {
-    const handler = (e) => {
-      if(!emojiRef.current.contains(e.target)){
-        setShowEmojiPicker(false)
+  useEffect(() => {
+    console.log("Effect running - adding event listener");
+    
+    const handler = (e: MouseEvent) => {
+      console.log(e)
+      if (emojiRef.current && !emojiRef.current.contains(e.target as Node)) {
+        setShowEmojiPicker(false);
       }
-      
-    }
-
-    document.addEventListener("mousedown", handler)
-  }) 
+    };
+    
+    document.addEventListener("mousedown", handler);
+    
+    return () => {
+      console.log("Cleanup running - removing event listener");
+      document.removeEventListener("mousedown", handler);
+    };
+  }, [showEmojiPicker]);
 
 
 
