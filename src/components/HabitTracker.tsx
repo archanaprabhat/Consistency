@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
+import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -54,8 +54,9 @@ export default function HabitTracker() {
         setDarkMode(savedTheme === "true");
       } else {
         // Check user's system preference for dark mode
-        const prefersDark =
-          window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)"
+        ).matches;
         setDarkMode(prefersDark);
       }
 
@@ -138,7 +139,7 @@ export default function HabitTracker() {
     setHabits(newHabits);
   };
 
-  const deleteHabit = (id:number) => {
+  const deleteHabit = (id: number) => {
     setHabits(habits.filter((h) => h.id !== id));
   };
 
@@ -146,32 +147,26 @@ export default function HabitTracker() {
     setDarkMode(!darkMode);
   };
   const handleEmojiSelect = (emojiData: EmojiClickData) => {
-    setNewHabit(prevHabit => prevHabit + emojiData.emoji);
+    setNewHabit((prevHabit) => prevHabit + emojiData.emoji);
   };
 
   const toggleEmojiPicker = () => {
     setShowEmojiPicker(!showEmojiPicker);
   };
-  
+
   useEffect(() => {
-    console.log("Effect running - adding event listener");
-    
     const handler = (e: MouseEvent) => {
-      console.log(e)
       if (emojiRef.current && !emojiRef.current.contains(e.target as Node)) {
         setShowEmojiPicker(false);
       }
     };
-    
+
     document.addEventListener("mousedown", handler);
-    
+
     return () => {
-      console.log("Cleanup running - removing event listener");
       document.removeEventListener("mousedown", handler);
     };
   }, [showEmojiPicker]);
-
-
 
   // Get theme-based classes and colors
   const getThemeClasses = () => {
@@ -222,7 +217,6 @@ export default function HabitTracker() {
       currentDayBorder: darkMode ? "border-pink-700" : "border-pink-400",
     };
   };
-  
 
   const theme = getThemeClasses();
 
@@ -283,49 +277,49 @@ export default function HabitTracker() {
         </div>
 
         {/* Add Habit Input */}
-      <div className='flex gap-2 w-full max-w-xl mx-auto mb-6 relative'>
-        <div ref={emojiRef} className='relative w-full'>
-          <div className='absolute left-3 top-1/2 transform -translate-y-1/2 z-20'>
-            <button 
-              onClick={toggleEmojiPicker}
-              className={`p-1 rounded-full ${theme.bgButtonHover} transition-colors`}
-            >
-              <Smile className={theme.textPrimary} size={26} />
-            </button>
-          </div>
-          
-          {/* Emoji Picker with Transition */}
-          {showEmojiPicker && (
-            <div 
-              className={`absolute top-full left-0 mt-2 z-50 
-                transition-all duration-300 ease-in-out 
-                ${showEmojiPicker 
-                  ? 'opacity-100 scale-100' 
-                  : 'opacity-0 scale-95'} -translate-x-1/2 `}
-            >
-              <EmojiPicker 
-                onEmojiClick={handleEmojiSelect} 
-                theme={darkMode ? Theme.DARK : Theme.LIGHT}
-              />
+        <div className='flex gap-2 w-full max-w-xl mx-auto mb-6 relative'>
+          <div ref={emojiRef} className='relative w-full'>
+            <div className='absolute left-3 top-1/2 transform -translate-y-1/2 z-20'>
+              <button
+                onClick={toggleEmojiPicker}
+                className={`p-1 rounded-full ${theme.bgButtonHover} transition-colors`}>
+                <Smile className={theme.textPrimary} size={26} />
+              </button>
             </div>
-          )}
 
-          <input
-            type='text'
-            placeholder='Add a new habit...'
-            value={newHabit}
-            onChange={(e) => setNewHabit(e.target.value)}
-            onKeyPress={handleKeyPress}
-            className={`w-full pl-16 p-3 rounded-lg border ${theme.inputBg} text-base md:text-lg focus:outline-none focus:ring-2 ${theme.inputFocus} shadow- transition-all ${theme.inputText}`}
-          />
+            {/* Emoji Picker with Transition */}
+            {showEmojiPicker && (
+              <div
+                className={`absolute top-full left-0 mt-2 z-50 
+                transition-all duration-300 ease-in-out 
+                ${
+                  showEmojiPicker
+                    ? "opacity-100 scale-100"
+                    : "opacity-0 scale-95"
+                } -translate-x-1/2 `}>
+                <EmojiPicker
+                  onEmojiClick={handleEmojiSelect}
+                  theme={darkMode ? Theme.DARK : Theme.LIGHT}
+                />
+              </div>
+            )}
+
+            <input
+              type='text'
+              placeholder='Add a new habit...'
+              value={newHabit}
+              onChange={(e) => setNewHabit(e.target.value)}
+              onKeyPress={handleKeyPress}
+              className={`w-full pl-16 p-3 rounded-lg border ${theme.inputBg} text-base md:text-lg focus:outline-none focus:ring-2 ${theme.inputFocus} shadow- transition-all ${theme.inputText}`}
+            />
+          </div>
+          <button
+            onClick={addHabit}
+            className={`${theme.btnPrimary} text-white rounded-lg px-3 md:px-4 transition-colors shadow-md flex items-center justify-center`}
+            aria-label='Add habit'>
+            <Plus size={24} />
+          </button>
         </div>
-        <button
-          onClick={addHabit}
-          className={`${theme.btnPrimary} text-white rounded-lg px-3 md:px-4 transition-colors shadow-md flex items-center justify-center`}
-          aria-label='Add habit'>
-          <Plus size={24} />
-        </button>
-      </div>
 
         {/* Habits Table */}
         <div
