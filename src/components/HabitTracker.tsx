@@ -132,9 +132,11 @@ export default function HabitTracker() {
     if (!newHabits[habitIndex].monthlyChecked[monthKey]) {
       newHabits[habitIndex].monthlyChecked[monthKey] = {};
     }
-
-    newHabits[habitIndex].monthlyChecked[monthKey][dayIndex] =
+    if(dayIndex + 1 < currentDate.getDate()){
+      newHabits[habitIndex].monthlyChecked[monthKey][dayIndex] =
       !newHabits[habitIndex].monthlyChecked[monthKey][dayIndex];
+    }
+    
 
     setHabits(newHabits);
   };
