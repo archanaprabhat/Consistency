@@ -15,6 +15,7 @@ import {
   Smile,
 } from "lucide-react";
 
+
 interface Habit {
   id: number;
   name: string;
