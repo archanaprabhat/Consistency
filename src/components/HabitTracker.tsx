@@ -134,18 +134,15 @@ export default function HabitTracker() {
       newHabits[habitIndex].monthlyChecked[monthKey] = {};
     }
 
-    if(isCurrentMonth){
-      if(dayIndex + 1 > today.getDate()) {
-        toast.error('U cant check in future date');
-        return;
-      }
-    }else if(currentDate > today){
-      toast('U cant check in future date');
-        return;
-    }else{
-      newHabits[habitIndex].monthlyChecked[monthKey][dayIndex] =
-      !newHabits[habitIndex].monthlyChecked[monthKey][dayIndex];
-    }
+    // First check conditions where we should prevent toggling
+if ((isCurrentMonth && dayIndex + 1 > today.getDate()) || currentDate > today) {
+  // Either it's current month with future day or it's entirely future month
+  toast.error("You can't check future dates");
+  return;
+}
+
+// If we reached here, it's either past or present day, so allow toggle
+newHabits[habitIndex].monthlyChecked[monthKey][dayIndex] = !newHabits[habitIndex].monthlyChecked[monthKey][dayIndex];
     
 
     setHabits(newHabits);
