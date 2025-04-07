@@ -14,7 +14,7 @@ import {
   Calendar,
   Smile,
 } from "lucide-react";
-
+import { Toaster, toast } from "sonner";
 
 interface Habit {
   id: number;
@@ -133,7 +133,16 @@ export default function HabitTracker() {
     if (!newHabits[habitIndex].monthlyChecked[monthKey]) {
       newHabits[habitIndex].monthlyChecked[monthKey] = {};
     }
-    if(dayIndex + 1 < currentDate.getDate()){
+
+    if(isCurrentMonth){
+      if(dayIndex + 1 > today.getDate()) {
+        toast.error('U cant check in future date');
+        return;
+      }
+    }else if(currentDate > today){
+      toast('U cant check in future date');
+        return;
+    }else{
       newHabits[habitIndex].monthlyChecked[monthKey][dayIndex] =
       !newHabits[habitIndex].monthlyChecked[monthKey][dayIndex];
     }
@@ -170,6 +179,8 @@ export default function HabitTracker() {
       document.removeEventListener("mousedown", handler);
     };
   }, [showEmojiPicker]);
+
+  
 
   // Get theme-based classes and colors
   const getThemeClasses = () => {
@@ -261,6 +272,7 @@ export default function HabitTracker() {
 
         {/* Month Navigation */}
         <div className='flex justify-between items-center w-full max-w-md mx-auto mb-6'>
+        
           <button
             onClick={() => changeMonth(-1)}
             className={`p-2 ${theme.bgButtonHover} rounded-full transition-colors duration-200`}
@@ -316,6 +328,7 @@ export default function HabitTracker() {
               className={`w-full pl-16 p-3 rounded-lg border ${theme.inputBg} text-base md:text-lg focus:outline-none focus:ring-2 ${theme.inputFocus} shadow- transition-all ${theme.inputText}`}
             />
           </div>
+          <Toaster position="top-right" richColors />
           <button
             onClick={addHabit}
             className={`${theme.btnPrimary} text-white rounded-lg px-3 md:px-4 transition-colors shadow-md flex items-center justify-center`}
@@ -372,7 +385,9 @@ export default function HabitTracker() {
                       return (
                         <td
                           key={dayIndex}
-                          onClick={() => toggleDay(habitIndex, dayIndex)}
+                          onClick={() => {
+                            toggleDay(habitIndex, dayIndex);
+                          }}
                           className={`border-b ${
                             theme.borderRow
                           } text-center cursor-pointer ${
