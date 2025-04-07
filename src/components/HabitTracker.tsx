@@ -329,7 +329,6 @@ export default function HabitTracker() {
             richColors
             theme={darkMode ? "dark" : "light"}
             closeButton
-            cancel
           />
           <button
             onClick={addHabit}
