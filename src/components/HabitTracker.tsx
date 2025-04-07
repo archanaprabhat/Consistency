@@ -134,16 +134,18 @@ export default function HabitTracker() {
       newHabits[habitIndex].monthlyChecked[monthKey] = {};
     }
 
-    // First check conditions where we should prevent toggling
-if ((isCurrentMonth && dayIndex + 1 > today.getDate()) || currentDate > today) {
-  // Either it's current month with future day or it's entirely future month
-  toast.error("You can't check future dates");
-  return;
-}
+    if (
+      (isCurrentMonth && dayIndex + 1 > today.getDate()) ||
+      currentDate > today
+    ) {
+      toast.error("You can't check future dates", {
+        dismissible: true,
+      });
+      return;
+    }
 
-// If we reached here, it's either past or present day, so allow toggle
-newHabits[habitIndex].monthlyChecked[monthKey][dayIndex] = !newHabits[habitIndex].monthlyChecked[monthKey][dayIndex];
-    
+    newHabits[habitIndex].monthlyChecked[monthKey][dayIndex] =
+      !newHabits[habitIndex].monthlyChecked[monthKey][dayIndex];
 
     setHabits(newHabits);
   };
@@ -176,8 +178,6 @@ newHabits[habitIndex].monthlyChecked[monthKey][dayIndex] = !newHabits[habitIndex
       document.removeEventListener("mousedown", handler);
     };
   }, [showEmojiPicker]);
-
-  
 
   // Get theme-based classes and colors
   const getThemeClasses = () => {
@@ -269,7 +269,6 @@ newHabits[habitIndex].monthlyChecked[monthKey][dayIndex] = !newHabits[habitIndex
 
         {/* Month Navigation */}
         <div className='flex justify-between items-center w-full max-w-md mx-auto mb-6'>
-        
           <button
             onClick={() => changeMonth(-1)}
             className={`p-2 ${theme.bgButtonHover} rounded-full transition-colors duration-200`}
@@ -325,7 +324,13 @@ newHabits[habitIndex].monthlyChecked[monthKey][dayIndex] = !newHabits[habitIndex
               className={`w-full pl-16 p-3 rounded-lg border ${theme.inputBg} text-base md:text-lg focus:outline-none focus:ring-2 ${theme.inputFocus} shadow- transition-all ${theme.inputText}`}
             />
           </div>
-          <Toaster position="top-right" richColors />
+          <Toaster
+            position='top-right'
+            richColors
+            theme={darkMode ? "dark" : "light"}
+            closeButton
+            cancel
+          />
           <button
             onClick={addHabit}
             className={`${theme.btnPrimary} text-white rounded-lg px-3 md:px-4 transition-colors shadow-md flex items-center justify-center`}
