@@ -2,7 +2,7 @@
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
 
-const firebaseConfieeg = {
+const firebaseConfig = {
     apiKey: "AIzaSyAPTgcTJ6zuDGFCgt7o2TQmlB0nKIE6QQw",
     authDomain: "arch-a-track.firebaseapp.com",
     projectId: "arch-a-track",
