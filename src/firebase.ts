@@ -1,47 +1,73 @@
-// src/firebase.ts
-import { initializeApp } from 'firebase/app';
-import { getMessaging, getToken, Messaging } from 'firebase/messaging';
+import { initializeApp, FirebaseApp } from 'firebase/app';
+import { getMessaging, getToken, onMessage, Messaging, MessagePayload } from 'firebase/messaging';
 
-// Your Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyAPTgcTJ6zuDGFCgt7o2TQmlB0nKIE6QQw",
-    authDomain: "arch-a-track.firebaseapp.com",
-    projectId: "arch-a-track",
-    storageBucket: "arch-a-track.firebasestorage.app",
-    messagingSenderId: "216751832260",
-    appId: "1:216751832260:web:eecac9d014715775b25d91",
-    measurementId: "G-43T49Z431T"
-  };
+  apiKey: "AIzaSyAPTgcTJ6zuDGFCgt7o2TQmlB0nKIE6QQw",
+  authDomain: "arch-a-track.firebaseapp.com",
+  projectId: "arch-a-track",
+  storageBucket: "arch-a-track.firebasestorage.app",
+  messagingSenderId: "216751832260",
+  appId: "1:216751832260:web:eecac9d014715775b25d91",
+  measurementId: "G-43T49Z431T"
+};
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-
-// Get messaging instance
+// Initialize Firebase only on client side
 let messaging: Messaging | null = null;
+let app: FirebaseApp | null = null;
+let swRegistration: ServiceWorkerRegistration | undefined;
 
-// Initialize messaging if in browser environment
 if (typeof window !== 'undefined') {
-  messaging = getMessaging(app);
+  try {
+    app = initializeApp(firebaseConfig);
+    messaging = getMessaging(app);
+    swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+  } catch (error) {
+    console.error("Firebase initialization error:", error);
+  }
 }
 
 // Request permission and get token
 export const requestNotificationPermission = async () => {
+  if (!messaging) return { success: false, reason: 'messaging-not-initialized' };
+  
   try {
-    if (!messaging) return { success: false, reason: 'not-browser' };
-    
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
-      // This is where you'll use your VAPID key
       const token = await getToken(messaging, {
-        vapidKey: 'BNGtVu3_KptzyoglMgn3_YYTBaiFOK_5tgsV4NVca9oaGxF0zPkkV_bz0DIrlSzlnHW1HiIPgOTtW1XaNQCBMZQ'
+        vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+        serviceWorkerRegistration: swRegistration,
       });
-      return { success: true, token };
+      
+      // Store token in localStorage
+      if (token) {
+        localStorage.setItem('fcmToken', token);
+        return { success: true, token };
+      } else {
+        return { success: false, reason: 'no-token-received' };
+      }
     }
     return { success: false, reason: 'permission-denied' };
   } catch (error) {
     console.error('Notification permission error:', error);
     return { success: false, reason: 'error', error };
   }
+};
+
+// Handle foreground messages
+export const setupMessageListener = (callback: (payload: MessagePayload) => void) => {
+  if (!messaging) return null;
+  
+  return onMessage(messaging, (payload) => {
+    callback(payload);
+  });
+};
+
+// Get stored FCM token
+export const getFCMToken = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('fcmToken');
+  }
+  return null;
 };
 
 export { messaging };

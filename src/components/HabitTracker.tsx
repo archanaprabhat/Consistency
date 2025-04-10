@@ -13,14 +13,22 @@ import {
   Sun,
   Calendar,
   Smile,
+  Settings,
 } from "lucide-react";
 import { Toaster, toast } from "sonner";
-
+import NotificationSettings from "./NotificationSettings";
+import { setupMessageListener } from "../firebase";
 
 interface Habit {
   id: number;
   name: string;
   monthlyChecked: Record<string, Record<number, boolean>>;
+}
+
+interface NotificationTime {
+  hour: number;
+  minute: number;
+  period: "AM" | "PM";
 }
 
 export default function HabitTracker() {
@@ -30,6 +38,8 @@ export default function HabitTracker() {
   const [darkMode, setDarkMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [notificationTimeout, setNotificationTimeout] = useState<NodeJS.Timeout | null>(null);
   const emojiRef = useRef<HTMLDivElement>(null);
 
   const today = new Date();
@@ -66,6 +76,112 @@ export default function HabitTracker() {
     }
   }, []);
 
+  // Setup notification listener
+  useEffect(() => {
+    const unsubscribe = setupMessageListener((payload) => {
+      // Create and show notification when app is in foreground
+      const { title, body } = payload.notification || {};
+      toast(title || "Habit Reminder", {
+        description: body || "Time to track your habits!",
+        duration: 5000,
+      });
+    });
+
+    // Schedule notification based on saved time
+    scheduleNextNotification();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+      if (notificationTimeout) clearTimeout(notificationTimeout);
+    };
+  }, []);
+
+  // Schedule the next notification based on saved time
+  const scheduleNextNotification = () => {
+    // Clear any existing timeout
+    if (notificationTimeout) {
+      clearTimeout(notificationTimeout);
+    }
+
+    // Get saved notification time
+    const savedTimeStr = localStorage.getItem("notificationTime");
+    if (!savedTimeStr) return;
+
+    try {
+      const savedTime: NotificationTime = JSON.parse(savedTimeStr);
+
+      // Calculate next notification time
+      const now = new Date();
+      const nextNotificationTime = new Date();
+      
+      // Convert from 12-hour to 24-hour format
+      let hours = savedTime.hour;
+      if (savedTime.period === "PM" && hours < 12) hours += 12;
+      if (savedTime.period === "AM" && hours === 12) hours = 0;
+      
+      nextNotificationTime.setHours(hours, savedTime.minute, 0, 0);
+      
+      // If time has already passed today, schedule for tomorrow
+      if (nextNotificationTime < now) {
+        nextNotificationTime.setDate(nextNotificationTime.getDate() + 1);
+      }
+      
+      // Calculate delay in milliseconds
+      const delay = nextNotificationTime.getTime() - now.getTime();
+      
+      // Store the next notification time
+      localStorage.setItem("nextNotificationTime", nextNotificationTime.toString());
+      
+      // Set timeout to send notification
+      const timeout = setTimeout(() => {
+        sendNotification();
+        // Schedule the next day's notification
+        scheduleNextNotification();
+      }, delay);
+      
+      setNotificationTimeout(timeout);
+      
+      console.log(`Next notification scheduled for: ${nextNotificationTime.toLocaleTimeString()}`);
+    } catch (e) {
+      console.error("Error scheduling notification:", e);
+    }
+  };
+
+  // Send notification
+  const sendNotification = async () => {
+    const fcmToken = localStorage.getItem("fcmToken");
+    
+    if (!fcmToken) {
+      console.error("No FCM token found");
+      return;
+    }
+    
+    const date = new Date();
+    const formattedDate = date.toLocaleDateString();
+    
+    try {
+      const response = await fetch("/api/send-notification", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token: fcmToken,
+          title: "Habit Tracker Reminder",
+          body: `Don't forget to track your habits for ${formattedDate}!`,
+        }),
+      });
+      
+      const result = await response.json();
+      
+      if (!result.success) {
+        console.error("Failed to send notification:", result.error);
+      }
+    } catch (error) {
+      console.error("Error sending notification:", error);
+    }
+  };
+
   // Save habits to localStorage whenever they change
   useEffect(() => {
     if (!isLoading) {
@@ -85,7 +201,6 @@ export default function HabitTracker() {
       }
     }
   }, [darkMode, isLoading]);
-  // console.log("Habits state:", habits);
 
   const monthYear = currentDate.toLocaleDateString("default", {
     month: "long",
@@ -158,12 +273,17 @@ export default function HabitTracker() {
   const toggleTheme = () => {
     setDarkMode(!darkMode);
   };
+  
   const handleEmojiSelect = (emojiData: EmojiClickData) => {
     setNewHabit((prevHabit) => prevHabit + emojiData.emoji);
   };
 
   const toggleEmojiPicker = () => {
     setShowEmojiPicker(!showEmojiPicker);
+  };
+
+  const toggleSettings = () => {
+    setShowSettings(!showSettings);
   };
 
   useEffect(() => {
@@ -254,18 +374,26 @@ export default function HabitTracker() {
               Arch•a•Track
             </h1>
           </div>
-          <button
-            onClick={toggleTheme}
-            className={`p-2 rounded-full ${theme.bgButtonHover} transition-colors`}
-            aria-label={
-              darkMode ? "Switch to light mode" : "Switch to dark mode"
-            }>
-            {darkMode ? (
-              <Sun className={theme.textPrimary} size={24} />
-            ) : (
-              <Moon className={theme.textPrimary} size={24} />
-            )}
-          </button>
+          <div className='flex items-center space-x-2'>
+            <button
+              onClick={toggleSettings}
+              className={`p-2 rounded-full ${theme.bgButtonHover} transition-colors`}
+              aria-label='Open settings'>
+              <Settings className={theme.textPrimary} size={24} />
+            </button>
+            <button
+              onClick={toggleTheme}
+              className={`p-2 rounded-full ${theme.bgButtonHover} transition-colors`}
+              aria-label={
+                darkMode ? "Switch to light mode" : "Switch to dark mode"
+              }>
+              {darkMode ? (
+                <Sun className={theme.textPrimary} size={24} />
+              ) : (
+                <Moon className={theme.textPrimary} size={24} />
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Month Navigation */}
@@ -322,7 +450,7 @@ export default function HabitTracker() {
               value={newHabit}
               onChange={(e) => setNewHabit(e.target.value)}
               onKeyPress={handleKeyPress}
-              className={`w-full pl-16 p-3 rounded-lg border ${theme.inputBg} text-base md:text-lg focus:outline-none focus:ring-2 ${theme.inputFocus} shadow- transition-all ${theme.inputText}`}
+              className={`w-full pl-16 p-3 rounded-lg border ${theme.inputBg} text-base md:text-lg focus:outline-none focus:ring-2 ${theme.inputFocus} shadow-sm transition-all ${theme.inputText}`}
             />
           </div>
           <Toaster
@@ -445,6 +573,14 @@ export default function HabitTracker() {
           )}
         </div>
       </div>
+
+      {/* Settings Modal */}
+      <NotificationSettings 
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        darkMode={darkMode}
+        theme={theme}
+      />
     </div>
   );
 }
