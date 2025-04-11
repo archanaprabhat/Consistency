@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, Bell, Clock, Check } from "lucide-react";
 import { requestNotificationPermission } from "../firebase";
-import {toast } from "sonner";
+import { toast } from "sonner";
 
 interface Theme {
   bgCard: string;
@@ -42,15 +42,12 @@ export default function NotificationSettings({
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  // Check if notifications are already enabled
   useEffect(() => {
-    // Check browser notification permission status
     if ("Notification" in window) {
       setPermissionStatus(Notification.permission);
       setNotificationsEnabled(Notification.permission === "granted");
     }
 
-    // Check if notification time is already saved
     const savedTime = localStorage.getItem("notificationTime");
     if (savedTime) {
       try {
@@ -63,14 +60,30 @@ export default function NotificationSettings({
 
   const enableNotifications = async () => {
     setIsLoading(true);
+    console.log("Requesting notification permission...");
+    
+    // Clear any previous token
+    localStorage.removeItem('fcmToken');
+    
     const result = await requestNotificationPermission();
     setIsLoading(false);
-
+  
+    console.log("Permission result:", result);
+  
     if (result.success) {
       setNotificationsEnabled(true);
       setPermissionStatus("granted");
-      toast.success("Notifications enabled successfully!");
+      
+      // Explicitly check the token was stored
+      const storedToken = localStorage.getItem('fcmToken');
+      if (storedToken) {
+        toast.success("Notifications enabled successfully!");
+        console.log("FCM Token stored:", storedToken);
+      } else {
+        toast.error("Failed to store FCM token. Please try again.");
+      }
     } else {
+      console.error("Failed to enable notifications:", result.reason);
       if (result.reason === "permission-denied") {
         toast.error(
           "Permission denied. Please enable notifications in your browser settings."
@@ -82,94 +95,87 @@ export default function NotificationSettings({
     }
   };
 
-  const handleTimeChange = (field: keyof NotificationTime, value: string | number) => {
+  const handleTimeChange = (
+    field: keyof NotificationTime,
+    value: string | number
+  ) => {
     let newValue = value;
-    
-    // Handle numeric fields
+
     if (field === "hour") {
-      newValue = parseInt(value as string);
-      if (isNaN(newValue) || newValue < 1) newValue = 1;
-      if (newValue > 12) newValue = 12;
+      newValue = Math.min(12, Math.max(1, parseInt(value as string)));
     } else if (field === "minute") {
-      newValue = parseInt(value as string);
-      if (isNaN(newValue) || newValue < 0) newValue = 0;
-      if (newValue > 59) newValue = 59;
+      newValue = Math.min(59, Math.max(0, parseInt(value as string)));
     }
 
     const updatedTime = { ...notificationTime, [field]: newValue };
     setNotificationTime(updatedTime);
-    
-    // Save to localStorage
     localStorage.setItem("notificationTime", JSON.stringify(updatedTime));
-    
-    // Schedule the notification (if permissions are granted)
+
     if (notificationsEnabled) {
       scheduleNotification(updatedTime);
     }
   };
 
   const scheduleNotification = (time: NotificationTime) => {
-    // Convert selected time to milliseconds
     const now = new Date();
     const notifyTime = new Date();
-    
-    // Set hours, converting from 12-hour to 24-hour format
+
     let hours = time.hour;
     if (time.period === "PM" && hours < 12) hours += 12;
     if (time.period === "AM" && hours === 12) hours = 0;
-    
+
     notifyTime.setHours(hours, time.minute, 0, 0);
-    
-    // If time has already passed today, schedule for tomorrow
-    if (notifyTime < now) {
-      notifyTime.setDate(notifyTime.getDate() + 1);
-    }
-    
-    // Store the next notification time
+    if (notifyTime < now) notifyTime.setDate(notifyTime.getDate() + 1);
+
     localStorage.setItem("nextNotificationTime", notifyTime.toString());
-    
-    // For debug purposes only
+
     const formattedTime = notifyTime.toLocaleTimeString();
     console.log(`Notification scheduled for: ${formattedTime}`);
-    
     toast.success(`Notification scheduled for ${formattedTime}`);
-    
-    // We'll handle the actual scheduling in the HabitTracker component
   };
 
   if (!isOpen) return null;
+  const debugServiceWorker = async () => {
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      console.log('Service Worker Registrations:', registrations);
+      
+      const fcmToken = localStorage.getItem('fcmToken');
+      console.log('Stored FCM Token:', fcmToken);
+      
+      // Check permission status
+      console.log('Notification Permission:', Notification.permission);
+    }
+  };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+    <div className='fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50'>
       <div
         className={`${
           theme.bgCard
         } w-full max-w-md rounded-lg shadow-xl p-6 relative ${
           darkMode ? "border border-gray-700" : "border border-pink-200"
-        }`}
-      >
-        <div className="flex justify-between items-center mb-6">
+        }`}>
+        <div className='flex justify-between items-center mb-6'>
           <h2 className={`text-xl font-bold ${theme.textHeader}`}>
             Notification Settings
           </h2>
           <button
             onClick={onClose}
             className={`p-2 rounded-full ${theme.bgButtonHover}`}
-            aria-label="Close settings"
-          >
+            aria-label='Close settings'>
             <X size={20} className={theme.textPrimary} />
           </button>
         </div>
 
-        <div className="space-y-6">
-          {/* Notification Toggle */}
+        <div className='space-y-6'>
+          {/* Enable Notifications */}
           <div
             className={`p-4 rounded-lg ${
               darkMode ? "bg-gray-800/50" : "bg-pink-50/50"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center">
+            }`}>
+            <div className='flex items-center justify-between mb-3'>
+              <div className='flex items-center'>
                 <Bell className={`${theme.textPrimary} mr-3`} size={20} />
                 <h3 className={`font-medium ${theme.textBody}`}>
                   Push Notifications
@@ -178,7 +184,9 @@ export default function NotificationSettings({
               <button
                 onClick={enableNotifications}
                 disabled={
-                  isLoading || notificationsEnabled || permissionStatus === "denied"
+                  isLoading ||
+                  notificationsEnabled ||
+                  permissionStatus === "denied"
                 }
                 className={`px-4 py-2 rounded-lg ${
                   notificationsEnabled
@@ -188,12 +196,11 @@ export default function NotificationSettings({
                     : theme.btnPrimary
                 } transition-colors flex items-center ${
                   isLoading ? "opacity-70" : ""
-                }`}
-              >
+                }`}>
                 {isLoading ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2'></div>
                 ) : notificationsEnabled ? (
-                  <Check size={16} className="mr-2" />
+                  <Check size={16} className='mr-2' />
                 ) : null}
                 {notificationsEnabled
                   ? "Enabled"
@@ -202,7 +209,10 @@ export default function NotificationSettings({
                   : "Enable"}
               </button>
             </div>
-            <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+            <p
+              className={`text-sm ${
+                darkMode ? "text-gray-400" : "text-gray-600"
+              }`}>
               {notificationsEnabled
                 ? "You'll receive reminders to track your habits."
                 : permissionStatus === "denied"
@@ -211,26 +221,22 @@ export default function NotificationSettings({
             </p>
           </div>
 
-          {/* Notification Time */}
+          {/* Time Picker */}
           <div
             className={`p-4 rounded-lg ${
               darkMode ? "bg-gray-800/50" : "bg-pink-50/50"
-            } ${!notificationsEnabled ? "opacity-60" : ""}`}
-          >
-            <div className="flex items-center mb-3">
+            } ${!notificationsEnabled ? "opacity-60" : ""}`}>
+            <div className='flex items-center mb-3'>
               <Clock className={`${theme.textPrimary} mr-3`} size={20} />
-              <h3 className={`font-medium ${theme.textBody}`}>
-                Reminder Time
-              </h3>
+              <h3 className={`font-medium ${theme.textBody}`}>Reminder Time</h3>
             </div>
 
-            <div className="flex items-center justify-center space-x-2 mt-4">
+            <div className='flex items-center justify-center space-x-2 mt-4'>
               <select
                 value={notificationTime.hour}
                 onChange={(e) => handleTimeChange("hour", e.target.value)}
                 disabled={!notificationsEnabled}
-                className={`w-16 p-2 rounded-md ${theme.inputBg} ${theme.inputText}`}
-              >
+                className={`w-16 p-2 rounded-md ${theme.inputBg} ${theme.inputText}`}>
                 {Array.from({ length: 12 }, (_, i) => i + 1).map((hour) => (
                   <option key={hour} value={hour}>
                     {hour}
@@ -242,37 +248,80 @@ export default function NotificationSettings({
                 value={notificationTime.minute}
                 onChange={(e) => handleTimeChange("minute", e.target.value)}
                 disabled={!notificationsEnabled}
-                className={`w-16 p-2 rounded-md ${theme.inputBg} ${theme.inputText}`}
-              >
+                className={`w-16 p-2 rounded-md ${theme.inputBg} ${theme.inputText}`}>
                 {Array.from({ length: 60 }, (_, i) => i).map((minute) => (
                   <option key={minute} value={minute}>
                     {minute.toString().padStart(2, "0")}
                   </option>
                 ))}
               </select>
-
               <select
                 value={notificationTime.period}
                 onChange={(e) =>
                   handleTimeChange("period", e.target.value as "AM" | "PM")
                 }
                 disabled={!notificationsEnabled}
-                className={`w-16 p-2 rounded-md ${theme.inputBg} ${theme.inputText}`}
-              >
-                <option value="AM">AM</option>
-                <option value="PM">PM</option>
+                className={`w-16 p-2 rounded-md ${theme.inputBg} ${theme.inputText}`}>
+                <option value='AM'>AM</option>
+                <option value='PM'>PM</option>
               </select>
             </div>
           </div>
         </div>
 
-        <div className="mt-6 flex justify-end">
+        {/* Footer buttons */}
+        <div className='mt-4'>
           <button
-            onClick={onClose}
-            className={`px-4 py-2 rounded-lg ${theme.btnPrimary} text-white`}
-          >
-            Done
+            onClick={async () => {
+              const { sendTestNotification } = await import(
+                "../utils/testNotification"
+              );
+              try {
+                console.log("Sending test notification...");
+                const token = localStorage .getItem("fcmToken");
+                console.log("Current FCM token:", token);
+
+                if (!token) {
+                  toast.error(
+                    "No FCM token found. Enable notifications first."
+                  );
+                  return;
+                }
+
+                const result = await sendTestNotification();
+                if (result) {
+                  toast.success("Test notification sent successfully!");
+                } else {
+                  toast.error("Failed to send test notification");
+                }
+              } catch (error) {
+                console.error("Error sending test notification:", error);
+                toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+              }
+            }}
+            disabled={!notificationsEnabled}
+            className={`px-4 py-2 rounded-lg ${theme.btnPrimary} text-white ${
+              !notificationsEnabled ? "opacity-50" : ""
+            }`}>
+            Send Test Notification
           </button>
+          <button
+  onClick={async () => {
+    // Clear FCM token
+    localStorage.removeItem('fcmToken');
+    // Reset UI state
+    setNotificationsEnabled(false);
+    setPermissionStatus('default');
+    toast.info("Notification settings reset. Please enable notifications again.");
+  }}
+  className={`mt-2 px-4 py-2 rounded-lg ${
+    darkMode ? "bg-gray-700" : "bg-gray-200"
+  } ${theme.textBody}`}>
+  Reset Notification Settings
+</button>
+<button onClick={debugServiceWorker} className="mt-2 text-xs text-gray-500">
+  Debug Service Worker
+</button>
         </div>
       </div>
     </div>
