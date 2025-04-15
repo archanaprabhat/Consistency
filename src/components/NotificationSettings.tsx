@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Bell, Clock, Check } from "lucide-react";
+import { X, Bell, Clock,} from "lucide-react";
 import { requestNotificationPermission } from "../firebase";
 import { toast } from "sonner";
 
@@ -181,33 +181,38 @@ export default function NotificationSettings({
                   Push Notifications
                 </h3>
               </div>
-              <button
-                onClick={enableNotifications}
-                disabled={
-                  isLoading ||
-                  notificationsEnabled ||
-                  permissionStatus === "denied"
-                }
-                className={`px-4 py-2 rounded-lg ${
-                  notificationsEnabled
-                    ? "bg-green-500 text-white"
-                    : permissionStatus === "denied"
-                    ? "bg-gray-400 text-gray-100"
-                    : theme.btnPrimary
-                } transition-colors flex items-center ${
-                  isLoading ? "opacity-70" : ""
-                }`}>
-                {isLoading ? (
-                  <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2'></div>
-                ) : notificationsEnabled ? (
-                  <Check size={16} className='mr-2' />
-                ) : null}
-                {notificationsEnabled
-                  ? "Enabled"
-                  : permissionStatus === "denied"
-                  ? "Blocked"
-                  : "Enable"}
-              </button>
+              <label className="flex items-center cursor-pointer">
+  <div className="relative">
+    <input
+      type="checkbox"
+      className="sr-only"
+      checked={notificationsEnabled}
+      disabled={permissionStatus === "denied" || isLoading}
+      onChange={(e) => {
+        if (e.target.checked) {
+          enableNotifications();
+        } else {
+          setNotificationsEnabled(false);
+          localStorage.removeItem("fcmToken"); // optional
+          toast.info("Notifications turned off.");
+        }
+      }}
+    />
+    <div
+      className={`block w-12 h-7 rounded-full transition ${
+        notificationsEnabled ? "bg-green-500" : "bg-gray-300"
+      }`}
+    ></div>
+    <div
+      className={`dot absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition ${
+        notificationsEnabled ? "translate-x-5" : ""
+      }`}
+    ></div>
+  </div>
+  <span className="ml-3 text-sm font-medium">
+    {notificationsEnabled ? "Enabled" : "Disabled"}
+  </span>
+</label>
             </div>
             <p
               className={`text-sm ${

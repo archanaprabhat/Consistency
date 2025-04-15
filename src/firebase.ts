@@ -1,6 +1,7 @@
 import { initializeApp, FirebaseApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage, Messaging, MessagePayload } from 'firebase/messaging';
 
+// Define Firebase config once
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -35,18 +36,11 @@ const initializeFirebase = async () => {
           // Wait for the service worker to be ready
           await navigator.serviceWorker.ready;
           
-          // Pass config to service worker
+          // Pass config to service worker - reuse the same config object
           if (swRegistration.active) {
             swRegistration.active.postMessage({
               type: 'FIREBASE_CONFIG',
-              config: {
-                FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-                FIREBASE_AUTH_DOMAIN: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-                FIREBASE_PROJECT_ID: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-                FIREBASE_STORAGE_BUCKET: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-                FIREBASE_MESSAGING_SENDER_ID: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-                FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
-              }
+              config: firebaseConfig
             });
           }
         }
@@ -55,7 +49,7 @@ const initializeFirebase = async () => {
         messaging = getMessaging(app);
         console.log('Firebase messaging initialized');
       } catch (error) {
-        console.error("Service Worker registration error:", error);
+        console.error("Service worker registration error:", error);
       }
     } catch (error) {
       console.error("Firebase initialization error:", error);
@@ -71,32 +65,33 @@ export const requestNotificationPermission = async () => {
   
   try {
     const permission = await Notification.requestPermission();
-    if (permission === 'granted') {
-      // Clear any previous token
-      localStorage.removeItem('fcmToken');
-      
-      // Ensure service worker is properly registered
-      if (!swRegistration) {
-        swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-        console.log('Service worker registered in permission flow');
-      }
-      
-      const token = await getToken(messaging, {
-        vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
-        serviceWorkerRegistration: swRegistration,
-      });
-      
-      // Store token in localStorage
-      if (token) {
-        localStorage.setItem('fcmToken', token);
-        console.log('FCM Token obtained and stored:', token);
-        return { success: true, token };
-      } else {
-        console.error('No FCM token received');
-        return { success: false, reason: 'no-token-received' };
-      }
+    if (permission !== 'granted') {
+      return { success: false, reason: 'permission-denied' };
     }
-    return { success: false, reason: 'permission-denied' };
+    
+    // Clear any previous token
+    localStorage.removeItem('fcmToken');
+    
+    // Ensure service worker is properly registered
+    if (!swRegistration) {
+      swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      console.log('Service worker registered in permission flow');
+    }
+    
+    const token = await getToken(messaging, {
+      vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+      serviceWorkerRegistration: swRegistration,
+    });
+    
+    // Store token in localStorage
+    if (token) {
+      localStorage.setItem('fcmToken', token);
+      console.log('FCM Token obtained and stored:', token);
+      return { success: true, token };
+    } else {
+      console.error('No FCM token received');
+      return { success: false, reason: 'no-token-received' };
+    }
   } catch (error) {
     console.error('Notification permission error:', error);
     return { success: false, reason: 'error', error };
@@ -106,8 +101,15 @@ export const requestNotificationPermission = async () => {
 // Handle foreground messages
 export const setupMessageListener = (callback: (payload: MessagePayload) => void) => {
   if (!messaging) {
-    initializeFirebase();
-    if (!messaging) return null;
+    initializeFirebase().then(() => {
+      if (messaging) {
+        return onMessage(messaging, (payload) => {
+          console.log('Foreground message received:', payload);
+          callback(payload);
+        });
+      }
+    });
+    return null;
   }
   
   return onMessage(messaging, (payload) => {
