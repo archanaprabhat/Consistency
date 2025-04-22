@@ -21,8 +21,8 @@ function initializeFirebase() {
       const notificationTitle = payload.notification?.title || 'Habit Tracker';
       const notificationOptions = {
         body: payload.notification?.body || 'Time to check your habits!',
-        icon: '/icon.png',
-        badge: '/badge.png',
+        icon: '/assets/icon.png',
+        badge: '/assets/badge.png',
         tag: 'habit-reminder',
         vibrate: [200, 100, 200]
       };
