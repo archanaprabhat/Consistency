@@ -22,7 +22,7 @@ function initializeFirebase() {
       const notificationOptions = {
         body: payload.notification?.body || 'Time to check your habits!',
         icon: '/assets/icon.png',
-        badge: '/assets/badge.png',
+        badge: '/assets/badge.jpg',
         tag: 'habit-reminder',
         vibrate: [200, 100, 200]
       };
