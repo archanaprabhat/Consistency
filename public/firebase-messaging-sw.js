@@ -60,15 +60,6 @@ self.addEventListener('notificationclick', (event) => {
   console.log('[firebase-messaging-sw.js] Notification clicked');
   event.notification.close();
 
-  self.addEventListener("message", (event) => {
-    if (event.data === "openWindowTest") {
-      if (clients.openWindow) {
-        clients.openWindow("/").then((client) => {
-          console.log("New window opened:", client);
-        });
-      }
-    }
-  });
 
   // Open the app and focus it
   event.waitUntil(
