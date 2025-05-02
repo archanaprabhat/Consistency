@@ -79,7 +79,7 @@ self.addEventListener('notificationclick', (event) => {
         }
         // If not, open a new window/tab
         if (clients.openWindow) {
-          return clients.openWindow('/');
+          return clients.openWindow(targetUrl);
         }
       })
   );
