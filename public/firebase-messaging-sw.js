@@ -71,8 +71,7 @@ self.addEventListener('notificationclick', (event) => {
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then((windowClients) => {
         // Check if there is already a window/tab open
-        for (let i = 0; i < windowClients.length; i++) {
-          const client = windowClients[i];
+        for (let client of windowClients) {
           // If so, focus it
           if ('focus' in client) {
             return client.focus();
