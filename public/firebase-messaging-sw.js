@@ -63,6 +63,8 @@ self.addEventListener('notificationclick', (event) => {
   console.log('[firebase-messaging-sw.js] Notification clicked');
   event.notification.close();
 
+  const targetUrl = event.notification.data?.url || '/';
+
 
   // Open the app and focus it
   event.waitUntil(
