@@ -24,7 +24,10 @@ function initializeFirebase() {
         icon: '/assets/icon.jpg',
         badge: '/assets/badge.jpg',
         tag: 'habit-reminder',
-        vibrate: [200, 100, 200]
+        vibrate: [200, 100, 200],
+        data:{
+          url: payload.data?.url || '/'
+        }
       };
       
       self.registration.showNotification(notificationTitle, notificationOptions);
