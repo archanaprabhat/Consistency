@@ -45,7 +45,7 @@ export async function POST(request: Request) {
           link: '/',
         },
         notification: {
-          icon: '/icon.jpg',
+          icon: '/assets/icon.jpg',
         },
       },
     };
