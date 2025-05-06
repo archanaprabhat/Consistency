@@ -213,6 +213,9 @@ export default function NotificationSettings({
     {notificationsEnabled ? "Enabled" : "Disabled"}
   </span>
 </label>
+              {isLoading && (
+                <div className="ml-2 w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+              )}
             </div>
             <p
               className={`text-sm ${
