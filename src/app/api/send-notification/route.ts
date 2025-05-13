@@ -2,7 +2,6 @@
 import { NextResponse } from 'next/server';
 import admin from 'firebase-admin';
 import { ServiceAccount } from 'firebase-admin';
-import serviceAccount from '../../../../servicekey.json';
 
 // Initialize Firebase Admin if it hasn't been initialized yet
 if (!admin.apps.length) {
