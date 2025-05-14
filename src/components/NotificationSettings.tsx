@@ -193,7 +193,7 @@ export default function NotificationSettings({
           enableNotifications();
         } else {
           setNotificationsEnabled(false);
-          localStorage.removeItem("fcmToken"); // optional
+          localStorage.removeItem("fcmToken");
           toast.info("Notifications turned off.");
         }
       }}
