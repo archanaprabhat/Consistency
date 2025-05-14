@@ -62,9 +62,6 @@ export default function NotificationSettings({
     setIsLoading(true);
     console.log("Requesting notification permission...");
     
-    // Clear any previous token
-    localStorage.removeItem('fcmToken');
-    
     const result = await requestNotificationPermission();
     setIsLoading(false);
   
