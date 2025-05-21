@@ -146,13 +146,15 @@ export default function NotificationSettings({
   };
 
   return (
-    <div className='fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-10' onClick={onClose}>
+    <div className='fixed inset-0 flex items-center justify-center z-50 bg-black' onClick={onClose}>
       <div
         className={`${
           theme.bgCard
         } w-full max-w-md rounded-lg shadow-xl p-6 relative ${
           darkMode ? "border border-gray-700" : "border border-pink-200"
-        }`}>
+        }`}
+        onClick={(e) => e.stopPropagation()}
+        >
         <div className='flex justify-between items-center mb-6'>
           <h2 className={`text-xl font-bold ${theme.textHeader}`}>
             Notification Settings
