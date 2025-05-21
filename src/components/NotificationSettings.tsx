@@ -150,7 +150,7 @@ export default function NotificationSettings({
       <div
         className={`${
           theme.bgCard
-        } w-full max-w-md rounded-lg shadow-xl p-6 relative ${
+        } w-full max-w-md rounded-lg p-6 relative ${
           darkMode ? "border border-gray-700" : "border border-pink-200"
         }`}
         onClick={(e) => e.stopPropagation()}
