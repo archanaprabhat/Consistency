@@ -69,8 +69,6 @@ export const requestNotificationPermission = async () => {
       return { success: false, reason: 'permission-denied' };
     }
     
-    // Clear any previous token
-    localStorage.removeItem('fcmToken');
     
     // Ensure service worker is properly registered
     if (!swRegistration) {
