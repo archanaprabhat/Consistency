@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Bell, Clock,} from "lucide-react";
+import { X, Bell, Clock } from "lucide-react";
 import { requestNotificationPermission } from "../firebase";
 import { toast } from "sonner";
 
@@ -61,18 +61,18 @@ export default function NotificationSettings({
   const enableNotifications = async () => {
     setIsLoading(true);
     console.log("Requesting notification permission...");
-    
+
     const result = await requestNotificationPermission();
     setIsLoading(false);
-  
+
     console.log("Permission result:", result);
-  
+
     if (result.success) {
       setNotificationsEnabled(true);
       setPermissionStatus("granted");
-      
+
       // Explicitly check the token was stored
-      const storedToken = localStorage.getItem('fcmToken');
+      const storedToken = localStorage.getItem("fcmToken");
       if (storedToken) {
         toast.success("Notifications enabled successfully!");
         console.log("FCM Token stored:", storedToken);
@@ -133,28 +133,27 @@ export default function NotificationSettings({
 
   if (!isOpen) return null;
   const debugServiceWorker = async () => {
-    if ('serviceWorker' in navigator) {
+    if ("serviceWorker" in navigator) {
       const registrations = await navigator.serviceWorker.getRegistrations();
-      console.log('Service Worker Registrations:', registrations);
-      
-      const fcmToken = localStorage.getItem('fcmToken');
-      console.log('Stored FCM Token:', fcmToken);
-      
+      console.log("Service Worker Registrations:", registrations);
+
+      const fcmToken = localStorage.getItem("fcmToken");
+      console.log("Stored FCM Token:", fcmToken);
+
       // Check permission status
-      console.log('Notification Permission:', Notification.permission);
+      console.log("Notification Permission:", Notification.permission);
     }
   };
 
   return (
-    <div className='fixed inset-0 flex items-center justify-center z-50 bg-black' onClick={onClose}>
+    <div
+      className='fixed inset-0 flex items-center justify-center z-50 bg-black'
+      onClick={onClose}>
       <div
-        className={`${
-          theme.bgCard
-        } w-full max-w-md rounded-lg p-6 relative ${
+        className={`${theme.bgCard} w-full max-w-md rounded-lg p-6 relative ${
           darkMode ? "border border-gray-700" : "border border-pink-200"
         }`}
-        onClick={(e) => e.stopPropagation()}
-        >
+        onClick={(e) => e.stopPropagation()}>
         <div className='flex justify-between items-center mb-6'>
           <h2 className={`text-xl font-bold ${theme.textHeader}`}>
             Notification Settings
@@ -180,40 +179,38 @@ export default function NotificationSettings({
                   Push Notifications
                 </h3>
               </div>
-              <label className="flex items-center cursor-pointer">
-  <div className="relative">
-    <input
-      type="checkbox"
-      className="sr-only"
-      checked={notificationsEnabled}
-      disabled={permissionStatus === "denied" || isLoading}
-      onChange={(e) => {
-        if (e.target.checked) {
-          enableNotifications();
-        } else {
-          setNotificationsEnabled(false);
-          localStorage.removeItem("fcmToken");
-          toast.info("Notifications turned off.");
-        }
-      }}
-    />
-    <div
-      className={`block w-12 h-7 rounded-full transition ${
-        notificationsEnabled ? "bg-green-500" : "bg-gray-300"
-      }`}
-    ></div>
-    <div
-      className={`dot absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition ${
-        notificationsEnabled ? "translate-x-5" : ""
-      }`}
-    ></div>
-  </div>
-  <span className="ml-3 text-sm font-medium">
-    {notificationsEnabled ? "Enabled" : "Disabled"}
-  </span>
-</label>
+              <label className='flex items-center cursor-pointer'>
+                <div className='relative'>
+                  <input
+                    type='checkbox'
+                    className='sr-only'
+                    checked={notificationsEnabled}
+                    disabled={permissionStatus === "denied" || isLoading}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        enableNotifications();
+                      } else {
+                        setNotificationsEnabled(false);
+                        localStorage.removeItem("fcmToken");
+                        toast.info("Notifications turned off.");
+                      }
+                    }}
+                  />
+                  <div
+                    className={`block w-12 h-7 rounded-full transition ${
+                      notificationsEnabled ? "bg-green-500" : "bg-gray-300"
+                    }`}></div>
+                  <div
+                    className={`dot absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition ${
+                      notificationsEnabled ? "translate-x-5" : ""
+                    }`}></div>
+                </div>
+                <span className='ml-3 text-sm font-medium'>
+                  {notificationsEnabled ? "Enabled" : "Disabled"}
+                </span>
+              </label>
               {isLoading && (
-                <div className="ml-2 w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                <div className='ml-2 w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin'></div>
               )}
             </div>
             <p
@@ -285,7 +282,7 @@ export default function NotificationSettings({
               );
               try {
                 console.log("Sending test notification...");
-                const token = localStorage .getItem("fcmToken");
+                const token = localStorage.getItem("fcmToken");
                 console.log("Current FCM token:", token);
 
                 if (!token) {
@@ -303,7 +300,11 @@ export default function NotificationSettings({
                 }
               } catch (error) {
                 console.error("Error sending test notification:", error);
-                toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                toast.error(
+                  `Error: ${
+                    error instanceof Error ? error.message : "Unknown error"
+                  }`
+                );
               }
             }}
             disabled={!notificationsEnabled}
@@ -313,22 +314,26 @@ export default function NotificationSettings({
             Send Test Notification
           </button>
           <button
-  onClick={async () => {
-    // Clear FCM token
-    localStorage.removeItem('fcmToken');
-    // Reset UI state
-    setNotificationsEnabled(false);
-    setPermissionStatus('default');
-    toast.info("Notification settings reset. Please enable notifications again.");
-  }}
-  className={`mt-2 px-4 py-2 rounded-lg ${
-    darkMode ? "bg-gray-700" : "bg-gray-200"
-  } ${theme.textBody}`}>
-  Reset Notification Settings
-</button>
-<button onClick={debugServiceWorker} className="mt-2 text-xs text-gray-500">
-  Debug Service Worker
-</button>
+            onClick={async () => {
+              // Clear FCM token
+              localStorage.removeItem("fcmToken");
+              // Reset UI state
+              setNotificationsEnabled(false);
+              setPermissionStatus("default");
+              toast.info(
+                "Notification settings reset. Please enable notifications again."
+              );
+            }}
+            className={`mt-2 px-4 py-2 rounded-lg ${
+              darkMode ? "bg-gray-700" : "bg-gray-200"
+            } ${theme.textBody}`}>
+            Reset Notification Settings
+          </button>
+          <button
+            onClick={debugServiceWorker}
+            className='mt-2 text-xs text-gray-500'>
+            Debug Service Worker
+          </button>
         </div>
       </div>
     </div>
