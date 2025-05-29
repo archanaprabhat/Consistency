@@ -18,17 +18,12 @@ import {
 import { Toaster, toast } from "sonner";
 import NotificationSettings from "./NotificationSettings";
 import { setupMessageListener } from "../firebase";
+import { NotificationTime, convertTo24Hour } from "../utils/notificationUtils";
 
 interface Habit {
   id: number;
   name: string;
   monthlyChecked: Record<string, Record<number, boolean>>;
-}
-
-interface NotificationTime {
-  hour: number;
-  minute: number;
-  period: "AM" | "PM";
 }
 
 export default function HabitTracker() {
@@ -109,17 +104,12 @@ export default function HabitTracker() {
 
     try {
       const savedTime: NotificationTime = JSON.parse(savedTimeStr);
+      const { hours, minutes } = convertTo24Hour(savedTime);
 
       // Calculate next notification time
       const now = new Date();
       const nextNotificationTime = new Date();
-      
-      // Convert from 12-hour to 24-hour format
-      let hours = savedTime.hour;
-      if (savedTime.period === "PM" && hours < 12) hours += 12;
-      if (savedTime.period === "AM" && hours === 12) hours = 0;
-      
-      nextNotificationTime.setHours(hours, savedTime.minute, 0, 0);
+      nextNotificationTime.setHours(hours, minutes, 0, 0);
       
       // If time has already passed today, schedule for tomorrow
       if (nextNotificationTime < now) {

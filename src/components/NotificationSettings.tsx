@@ -7,6 +7,7 @@ import {
   NotificationPreferences,
 } from "../firebase";
 import { toast } from "sonner";
+import { NotificationTime, formatTime } from "../utils/notificationUtils";
 
 interface Theme {
   bgCard: string;
@@ -24,12 +25,6 @@ interface NotificationSettingsProps {
   onClose: () => void;
   darkMode: boolean;
   theme: Theme;
-}
-
-interface NotificationTime {
-  hour: number;
-  minute: number;
-  period: "AM" | "PM";
 }
 
 export default function NotificationSettings({
@@ -121,12 +116,6 @@ export default function NotificationSettings({
       const formattedTime = formatTime(updatedTime);
       toast.success(`Reminder time updated to ${formattedTime}`);
     }
-  };
-
-  const formatTime = (time: NotificationTime): string => {
-    const hourStr = time.hour.toString();
-    const minuteStr = time.minute.toString().padStart(2, "0");
-    return `${hourStr}:${minuteStr} ${time.period}`;
   };
 
   const sendTestNotification = async () => {
