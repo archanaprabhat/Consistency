@@ -130,11 +130,6 @@ export default function NotificationSettings({
   };
 
   const sendTestNotification = async () => {
-    if (!notificationStatus.canReceive) {
-      toast.error("Please enable notifications first");
-      return;
-    }
-
     try {
       const { sendTestNotification } = await import(
         "../utils/testNotification"
