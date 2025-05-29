@@ -1,7 +1,6 @@
 import { initializeApp, FirebaseApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage, Messaging, MessagePayload } from 'firebase/messaging';
 
-// Define Firebase config once
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -12,121 +11,135 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase only on client side
 let messaging: Messaging | null = null;
 let app: FirebaseApp | null = null;
-let swRegistration: ServiceWorkerRegistration | undefined;
 
-// Initialize Firebase
-const initializeFirebase = async () => {
-  if (typeof window === 'undefined') return;
+// Simple notification preferences
+export const NotificationPreferences = {
+  // Check if user wants notifications (simple toggle)
+  isEnabled: (): boolean => {
+    return localStorage.getItem('notifications_enabled') === 'true';
+  },
   
-  if (!app) {
-    try {
-      app = initializeApp(firebaseConfig);
-      
-      // Register service worker first
-      try {
-        if ('serviceWorker' in navigator) {
-          swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
-            scope: '/'
-          });
-          console.log('Service worker registered successfully', swRegistration);
-          
-          // Wait for the service worker to be ready
-          await navigator.serviceWorker.ready;
-          
-          // Pass config to service worker - reuse the same config object
-          if (swRegistration.active) {
-            swRegistration.active.postMessage({
-              type: 'FIREBASE_CONFIG',
-              config: firebaseConfig
-            });
-          }
-        }
-        
-        // Initialize messaging only after service worker is ready
-        messaging = getMessaging(app);
-        console.log('Firebase messaging initialized');
-      } catch (error) {
-        console.error("Service worker registration error:", error);
-      }
-    } catch (error) {
-      console.error("Firebase initialization error:", error);
-    }
+  // Enable/disable notifications (just a preference, doesn't touch FCM)
+  setEnabled: (enabled: boolean): void => {
+    localStorage.setItem('notifications_enabled', enabled.toString());
+  },
+  
+  // Get notification time
+  getTime: () => {
+    const saved = localStorage.getItem('notification_time');
+    return saved ? JSON.parse(saved) : { hour: 8, minute: 0, period: 'PM' };
+  },
+  
+  // Set notification time
+  setTime: (time: { hour: number; minute: number; period: 'AM' | 'PM' }): void => {
+    localStorage.setItem('notification_time', JSON.stringify(time));
+  },
+  
+  // Get FCM token (readonly - never delete this)
+  getToken: (): string | null => {
+    return localStorage.getItem('fcm_token');
   }
 };
 
-// Request permission and get token
-export const requestNotificationPermission = async () => {
-  await initializeFirebase();
-  
-  if (!messaging) return { success: false, reason: 'messaging-not-initialized' };
+// Initialize Firebase once
+const initializeFirebase = async (): Promise<boolean> => {
+  if (typeof window === 'undefined' || app) return !!messaging;
   
   try {
+    app = initializeApp(firebaseConfig);
+    
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      await navigator.serviceWorker.ready;
+    }
+    
+    messaging = getMessaging(app);
+    console.log('Firebase initialized successfully');
+    return true;
+  } catch (error) {
+    console.error('Firebase initialization failed:', error);
+    return false;
+  }
+};
+
+// One-time setup: Get FCM token and store it permanently
+export const setupNotifications = async (): Promise<{ success: boolean; message: string }> => {
+  // Check if already set up
+  if (NotificationPreferences.getToken()) {
+    NotificationPreferences.setEnabled(true);
+    return { success: true, message: 'Notifications enabled' };
+  }
+  
+  // Initialize Firebase
+  const initialized = await initializeFirebase();
+  if (!initialized || !messaging) {
+    return { success: false, message: 'Failed to initialize Firebase' };
+  }
+  
+  try {
+    // Request permission
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
-      return { success: false, reason: 'permission-denied' };
+      return { success: false, message: 'Permission denied' };
     }
     
-    
-    // Ensure service worker is properly registered
-    if (!swRegistration) {
-      swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-      console.log('Service worker registered in permission flow');
-    }
-    
+    // Get and store FCM token if not already present
     const token = await getToken(messaging, {
-      vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
-      serviceWorkerRegistration: swRegistration,
+      vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
     });
     
-    // Store token in localStorage
-    if (token) {
-      localStorage.setItem('fcmToken', token);
-      console.log('FCM Token obtained and stored:', token);
-      return { success: true, token };
-    } else {
-      console.error('No FCM token received');
-      return { success: false, reason: 'no-token-received' };
+    if (!token) {
+      return { success: false, message: 'Failed to get FCM token' };
     }
+    
+    // Store token permanently
+    localStorage.setItem('fcm_token', token);
+    NotificationPreferences.setEnabled(true);
+    
+    console.log('FCM token obtained:', token);
+    return { success: true, message: 'Notifications set up successfully' };
+    
   } catch (error) {
-    console.error('Notification permission error:', error);
-    return { success: false, reason: 'error', error };
+    console.error('Setup failed:', error);
+    return { success: false, message: 'Setup failed: ' + (error as Error).message };
   }
+};
+
+// Simple toggle - just changes user preference
+export const toggleNotifications = (enabled: boolean): void => {
+  NotificationPreferences.setEnabled(enabled);
+};
+
+// Check if notifications are ready to use
+export const getNotificationStatus = () => {
+  const hasToken = !!NotificationPreferences.getToken();
+  const isEnabled = NotificationPreferences.isEnabled();
+  const hasPermission = typeof window !== 'undefined' && Notification.permission === 'granted';
+  
+  return {
+    isSetup: hasToken && hasPermission,
+    isEnabled: isEnabled,
+    canReceive: hasToken && hasPermission && isEnabled
+  };
 };
 
 // Handle foreground messages
 export const setupMessageListener = (callback: (payload: MessagePayload) => void) => {
-  if (!messaging) {
-    initializeFirebase().then(() => {
-      if (messaging) {
-        return onMessage(messaging, (payload) => {
-          console.log('Foreground message received:', payload);
-          callback(payload);
-        });
-      }
-    });
-    return null;
+  if (messaging) {
+    return onMessage(messaging, callback);
   }
   
-  return onMessage(messaging, (payload) => {
-    console.log('Foreground message received:', payload);
-    callback(payload);
+  initializeFirebase().then(() => {
+    if (messaging) {
+      onMessage(messaging, callback);
+    }
   });
 };
 
-// Get stored FCM token
-export const getFCMToken = () => {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('fcmToken');
-  }
-  return null;
-};
-
-// Initialize Firebase on import if we're in browser
+// Initialize on import (browser only)
 if (typeof window !== 'undefined') {
   initializeFirebase();
 }
-
-export { messaging };
