@@ -127,17 +127,23 @@ export const getNotificationStatus = () => {
 };
 
 // Handle foreground messages
-export const setupMessageListener = (callback: (payload: MessagePayload) => void) => {
-  if (messaging) {
-    return onMessage(messaging, callback);
+// Sets up a listener for Firebase foreground messages.
+// Initializes Firebase messaging if needed and returns an unsubscribe function on success.
+export const setupMessageListener = async (
+  callback: (payload: MessagePayload) => void
+) => {
+  try {
+    // Initialize Firebase messaging if it hasn't been initialized yet
+    if (!messaging) await initializeFirebase();
+
+    // If messaging is available, attach the listener and return the unsubscribe function
+    return messaging ? onMessage(messaging, callback) : undefined;
+  } catch (error) {
+    console.error("Failed to set up message listener:", error);
+    return undefined;
   }
-  
-  initializeFirebase().then(() => {
-    if (messaging) {
-      onMessage(messaging, callback);
-    }
-  });
 };
+
 
 // Initialize on import (browser only)
 if (typeof window !== 'undefined') {
