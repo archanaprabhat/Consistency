@@ -73,16 +73,19 @@ export default function HabitTracker() {
 
   // Setup notification listener
   useEffect(() => {
-    const unsubscribe = setupMessageListener((payload) => {
-      // Create and show notification when app is in foreground
-      const { title, body } = payload.notification || {};
-      toast(title || "Habit Reminder", {
-        description: body || "Time to track your habits!",
-        duration: 5000,
-      });
-    });
+    let unsubscribe: (() => void) | undefined;
 
-    // Schedule notification based on saved time
+    const setupListener = async () => {
+      unsubscribe = await setupMessageListener((payload) => {
+        const { title, body } = payload.notification || {};
+        toast(title || "Habit Reminder", {
+          description: body || "Time to track your habits!",
+          duration: 5000,
+        });
+      });
+    };
+
+    setupListener();
     scheduleNextNotification();
 
     return () => {
