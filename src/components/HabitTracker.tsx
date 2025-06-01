@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
 import {
   ChevronLeft,
@@ -36,6 +36,87 @@ export default function HabitTracker() {
   const [showSettings, setShowSettings] = useState(false);
   const [notificationTimeout, setNotificationTimeout] = useState<NodeJS.Timeout | null>(null);
   const emojiRef = useRef<HTMLDivElement>(null);
+
+  // Send notification
+  const sendNotification = async () => {
+    const fcmToken = localStorage.getItem("fcmToken");
+    
+    if (!fcmToken) {
+      console.error("No FCM token found");
+      return;
+    }
+    
+    const date = new Date();
+    const formattedDate = date.toLocaleDateString();
+    
+    try {
+      const response = await fetch("/api/send-notification", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token: fcmToken,
+          title: "Habit Tracker Reminder",
+          body: `Don't forget to track your habits for ${formattedDate}!`,
+        }),
+      });
+      
+      const result = await response.json();
+      
+      if (!result.success) {
+        console.error("Failed to send notification:", result.error);
+      }
+    } catch (error) {
+      console.error("Error sending notification:", error);
+    }
+  };
+
+  // Schedule the next notification based on saved time
+  const scheduleNextNotification = useCallback(() => {
+    // Clear any existing timeout
+    if (notificationTimeout) {
+      clearTimeout(notificationTimeout);
+    }
+
+    // Get saved notification time
+    const savedTimeStr = localStorage.getItem("notificationTime");
+    if (!savedTimeStr) return;
+
+    try {
+      const savedTime: NotificationTime = JSON.parse(savedTimeStr);
+      const { hours, minutes } = convertTo24Hour(savedTime);
+
+      // Calculate next notification time
+      const now = new Date();
+      const nextNotificationTime = new Date();
+      nextNotificationTime.setHours(hours, minutes, 0, 0);
+      
+      // If time has already passed today, schedule for tomorrow
+      if (nextNotificationTime < now) {
+        nextNotificationTime.setDate(nextNotificationTime.getDate() + 1);
+      }
+      
+      // Calculate delay in milliseconds
+      const delay = nextNotificationTime.getTime() - now.getTime();
+      
+      // Store the next notification time
+      localStorage.setItem("nextNotificationTime", nextNotificationTime.toString());
+      
+      // Set timeout to send notification
+      const timeout = setTimeout(() => {
+        sendNotification();
+        // Schedule the next day's notification
+        scheduleNextNotification();
+      }, delay);
+      
+      setNotificationTimeout(timeout);
+      
+      console.log(`Next notification scheduled for: ${nextNotificationTime.toLocaleTimeString()}`);
+    } catch (e) {
+      console.error("Error scheduling notification:", e);
+    }
+  }, [notificationTimeout]);
 
   const today = new Date();
   const isCurrentMonth =
@@ -92,88 +173,7 @@ export default function HabitTracker() {
       if (unsubscribe) unsubscribe();
       if (notificationTimeout) clearTimeout(notificationTimeout);
     };
-  }, []);
-
-  // Schedule the next notification based on saved time
-  const scheduleNextNotification = () => {
-    // Clear any existing timeout
-    if (notificationTimeout) {
-      clearTimeout(notificationTimeout);
-    }
-
-    // Get saved notification time
-    const savedTimeStr = localStorage.getItem("notificationTime");
-    if (!savedTimeStr) return;
-
-    try {
-      const savedTime: NotificationTime = JSON.parse(savedTimeStr);
-      const { hours, minutes } = convertTo24Hour(savedTime);
-
-      // Calculate next notification time
-      const now = new Date();
-      const nextNotificationTime = new Date();
-      nextNotificationTime.setHours(hours, minutes, 0, 0);
-      
-      // If time has already passed today, schedule for tomorrow
-      if (nextNotificationTime < now) {
-        nextNotificationTime.setDate(nextNotificationTime.getDate() + 1);
-      }
-      
-      // Calculate delay in milliseconds
-      const delay = nextNotificationTime.getTime() - now.getTime();
-      
-      // Store the next notification time
-      localStorage.setItem("nextNotificationTime", nextNotificationTime.toString());
-      
-      // Set timeout to send notification
-      const timeout = setTimeout(() => {
-        sendNotification();
-        // Schedule the next day's notification
-        scheduleNextNotification();
-      }, delay);
-      
-      setNotificationTimeout(timeout);
-      
-      console.log(`Next notification scheduled for: ${nextNotificationTime.toLocaleTimeString()}`);
-    } catch (e) {
-      console.error("Error scheduling notification:", e);
-    }
-  };
-
-  // Send notification
-  const sendNotification = async () => {
-    const fcmToken = localStorage.getItem("fcmToken");
-    
-    if (!fcmToken) {
-      console.error("No FCM token found");
-      return;
-    }
-    
-    const date = new Date();
-    const formattedDate = date.toLocaleDateString();
-    
-    try {
-      const response = await fetch("/api/send-notification", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          token: fcmToken,
-          title: "Habit Tracker Reminder",
-          body: `Don't forget to track your habits for ${formattedDate}!`,
-        }),
-      });
-      
-      const result = await response.json();
-      
-      if (!result.success) {
-        console.error("Failed to send notification:", result.error);
-      }
-    } catch (error) {
-      console.error("Error sending notification:", error);
-    }
-  };
+  }, [notificationTimeout, scheduleNextNotification]);
 
   // Save habits to localStorage whenever they change
   useEffect(() => {
