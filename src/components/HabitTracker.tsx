@@ -19,6 +19,7 @@ import { Toaster, toast } from "sonner";
 import NotificationSettings from "./NotificationSettings";
 import { setupMessageListener } from "../firebase";
 import { NotificationTime, convertTo24Hour } from "../utils/notificationUtils";
+import { storage, StorageKey } from '../utils/storage';
 
 interface Habit {
   id: number;
@@ -127,11 +128,11 @@ export default function HabitTracker() {
   // Load habits and theme preference from localStorage on component mount
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const savedHabits = localStorage.getItem("habits");
+      const savedHabits = storage.get<Habit[]>(StorageKey.HABITS) || [];
       const savedTheme = localStorage.getItem("darkMode");
       if (savedHabits) {
         try {
-          setHabits(JSON.parse(savedHabits));
+          setHabits(savedHabits);
         } catch (e) {
           console.error("Error parsing saved habits:", e);
           setHabits([]);
@@ -178,7 +179,7 @@ export default function HabitTracker() {
   // Save habits to localStorage whenever they change
   useEffect(() => {
     if (!isLoading) {
-      localStorage.setItem("habits", JSON.stringify(habits));
+      storage.set(StorageKey.HABITS, habits);
     }
   }, [habits, isLoading]);
 
@@ -433,6 +434,8 @@ export default function HabitTracker() {
                 <EmojiPicker
                   onEmojiClick={handleEmojiSelect}
                   theme={darkMode ? Theme.DARK : Theme.LIGHT}
+                  searchDisabled={true}
+                  skinTonesDisabled={true}
                 />
               </div>
             )}
