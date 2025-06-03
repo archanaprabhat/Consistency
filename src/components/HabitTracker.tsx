@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
 import {
   ChevronLeft,
@@ -35,7 +35,7 @@ export default function HabitTracker() {
   const [isLoading, setIsLoading] = useState(true);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [notificationTimeout, setNotificationTimeout] = useState<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const emojiRef = useRef<HTMLDivElement>(null);
 
   // Handles sending push notifications via Firebase Cloud Messaging
@@ -74,11 +74,10 @@ export default function HabitTracker() {
   };
 
   // Schedules the next notification based on user's preferred time
-  // Uses setTimeout to trigger notifications at the specified time
-  const scheduleNextNotification = useCallback(() => {
-    // Clear any existing timeout to prevent duplicate notifications
-    if (notificationTimeout) {
-      clearTimeout(notificationTimeout);
+  const scheduleNextNotification = () => {
+    // Clear any existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
     }
 
     // Get saved notification time from storage
@@ -102,18 +101,16 @@ export default function HabitTracker() {
       const delay = nextTime.getTime() - now.getTime();
       
       // Set timeout to send notification and schedule the next one
-      const timeout = setTimeout(() => {
+      timeoutRef.current = setTimeout(() => {
         sendNotification();
         scheduleNextNotification();
       }, delay);
-      
-      setNotificationTimeout(timeout);
       
       console.log(`Next notification scheduled for: ${nextTime.toLocaleTimeString()}`);
     } catch (e) {
       console.error("Error scheduling notification:", e);
     }
-  }, [notificationTimeout]);
+  };
 
   const today = new Date();
   const isCurrentMonth =
@@ -169,9 +166,9 @@ export default function HabitTracker() {
     // Cleanup: Unsubscribe from Firebase and clear any pending timeouts
     return () => {
       if (unsubscribe) unsubscribe();
-      if (notificationTimeout) clearTimeout(notificationTimeout);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [notificationTimeout, scheduleNextNotification]);
+  }, []); // Empty dependency array since we're using refs
 
   // Save habits to localStorage whenever they change
   useEffect(() => {
