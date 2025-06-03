@@ -38,9 +38,9 @@ export default function HabitTracker() {
   const [notificationTimeout, setNotificationTimeout] = useState<NodeJS.Timeout | null>(null);
   const emojiRef = useRef<HTMLDivElement>(null);
 
-  // Send notification
+  // Handles sending push notifications via Firebase Cloud Messaging
   const sendNotification = async () => {
-    const fcmToken = localStorage.getItem("fcmToken");
+    const fcmToken = storage.get<string>(StorageKey.FCM_TOKEN);
     
     if (!fcmToken) {
       console.error("No FCM token found");
@@ -73,19 +73,19 @@ export default function HabitTracker() {
     }
   };
 
-  // Schedule the next notification based on saved time
+  // Schedules the next notification based on user's preferred time
+  // Uses setTimeout to trigger notifications at the specified time
   const scheduleNextNotification = useCallback(() => {
-    // Clear any existing timeout
+    // Clear any existing timeout to prevent duplicate notifications
     if (notificationTimeout) {
       clearTimeout(notificationTimeout);
     }
 
-    // Get saved notification time
-    const savedTimeStr = localStorage.getItem("notificationTime");
-    if (!savedTimeStr) return;
+    // Get saved notification time from storage
+    const savedTime = storage.get<NotificationTime>(StorageKey.NOTIFICATION_TIME);
+    if (!savedTime) return;
 
     try {
-      const savedTime: NotificationTime = JSON.parse(savedTimeStr);
       const { hours, minutes } = convertTo24Hour(savedTime);
 
       // Calculate next notification time
@@ -101,13 +101,12 @@ export default function HabitTracker() {
       // Calculate delay in milliseconds
       const delay = nextNotificationTime.getTime() - now.getTime();
       
-      // Store the next notification time
-      localStorage.setItem("nextNotificationTime", nextNotificationTime.toString());
+      // Store the next notification time for persistence
+      storage.set(StorageKey.NEXT_NOTIFICATION, nextNotificationTime.toString());
       
-      // Set timeout to send notification
+      // Set timeout to send notification and schedule the next one
       const timeout = setTimeout(() => {
         sendNotification();
-        // Schedule the next day's notification
         scheduleNextNotification();
       }, delay);
       
@@ -153,7 +152,7 @@ export default function HabitTracker() {
     }
   }, []);
 
-  // Setup notification listener
+  // Setup Firebase message listener for handling incoming notifications
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
 
@@ -170,6 +169,7 @@ export default function HabitTracker() {
     setupListener();
     scheduleNextNotification();
 
+    // Cleanup: Unsubscribe from Firebase and clear any pending timeouts
     return () => {
       if (unsubscribe) unsubscribe();
       if (notificationTimeout) clearTimeout(notificationTimeout);
