@@ -102,7 +102,7 @@ export default function HabitTracker() {
       const delay = nextNotificationTime.getTime() - now.getTime();
       
       // Store the next notification time for persistence
-      storage.set(StorageKey.NEXT_NOTIFICATION, nextNotificationTime.toString());
+      storage.set(StorageKey.NEXT_NOTIFICATION, nextNotificationTime);
       
       // Set timeout to send notification and schedule the next one
       const timeout = setTimeout(() => {
@@ -186,7 +186,7 @@ export default function HabitTracker() {
   // Save theme preference
   useEffect(() => {
     if (!isLoading) {
-      localStorage.setItem("darkMode", darkMode.toString());
+      storage.set(StorageKey.DARK_MODE, darkMode);
 
       if (darkMode) {
         document.body.classList.add("dark-mode");
