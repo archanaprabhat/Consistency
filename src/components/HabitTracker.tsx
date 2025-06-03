@@ -90,19 +90,16 @@ export default function HabitTracker() {
 
       // Calculate next notification time
       const now = new Date();
-      const nextNotificationTime = new Date();
-      nextNotificationTime.setHours(hours, minutes, 0, 0);
+      const nextTime = new Date();
+      nextTime.setHours(hours, minutes, 0, 0);
       
       // If time has already passed today, schedule for tomorrow
-      if (nextNotificationTime < now) {
-        nextNotificationTime.setDate(nextNotificationTime.getDate() + 1);
+      if (nextTime < now) {
+        nextTime.setDate(nextTime.getDate() + 1);
       }
       
       // Calculate delay in milliseconds
-      const delay = nextNotificationTime.getTime() - now.getTime();
-      
-      // Store the next notification time for persistence
-      storage.set(StorageKey.NEXT_NOTIFICATION, nextNotificationTime);
+      const delay = nextTime.getTime() - now.getTime();
       
       // Set timeout to send notification and schedule the next one
       const timeout = setTimeout(() => {
@@ -112,7 +109,7 @@ export default function HabitTracker() {
       
       setNotificationTimeout(timeout);
       
-      console.log(`Next notification scheduled for: ${nextNotificationTime.toLocaleTimeString()}`);
+      console.log(`Next notification scheduled for: ${nextTime.toLocaleTimeString()}`);
     } catch (e) {
       console.error("Error scheduling notification:", e);
     }

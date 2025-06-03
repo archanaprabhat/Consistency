@@ -2,8 +2,7 @@ export const StorageKey = {
   HABITS: 'habits',
   DARK_MODE: 'darkMode',
   NOTIFICATION_TIME: 'notificationTime',
-  FCM_TOKEN: 'fcmToken',
-  NEXT_NOTIFICATION: 'nextNotificationTime'
+  FCM_TOKEN: 'fcmToken'
 } as const;
 
 export type StorageKeyType = typeof StorageKey[keyof typeof StorageKey];
