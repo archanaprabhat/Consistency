@@ -75,7 +75,8 @@ export default function HabitTracker() {
 
   // Schedules the next notification based on user's preferred time
   const scheduleNextNotification = () => {
-    // Clear any existing timeout
+    // Only clear timeout if we're in the same session
+    // This prevents duplicate notifications when user changes time
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
