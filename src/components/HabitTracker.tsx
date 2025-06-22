@@ -75,7 +75,7 @@ export default function HabitTracker() {
 
   // Save theme preference
   useEffect(() => {
-   
+    if (!isLoading) {
       localStorage.setItem("darkMode", darkMode.toString());
 
       if (darkMode) {
@@ -83,6 +83,7 @@ export default function HabitTracker() {
       } else {
         document.body.classList.remove("dark-mode");
       }
+    }
   }, [darkMode, isLoading]);
   // console.log("Habits state:", habits);
 
