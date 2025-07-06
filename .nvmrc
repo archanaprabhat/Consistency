@@ -1,0 +1,2 @@
+# Create .nvmrc file with a compatible Node version
+echo "20.11.1" > .nvmrc
