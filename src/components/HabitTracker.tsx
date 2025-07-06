@@ -36,6 +36,7 @@ export default function HabitTracker() {
   const [isLoading, setIsLoading] = useState(true);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const emojiRef = useRef<HTMLDivElement>(null);
+  const [showAddInput, setShowAddInput] = useState(false);
 
   const today = new Date();
   const isCurrentMonth =
@@ -328,9 +329,8 @@ export default function HabitTracker() {
   const theme = getThemeClasses();
 
   // Minimal Layout Component - Replaced with new minimal UI
-  const MinimalLayout = () => {
+  const MinimalLayout = ({ showAddInput, setShowAddInput }: { showAddInput: boolean; setShowAddInput: React.Dispatch<React.SetStateAction<boolean>> }) => {
     // All state and logic are shared from the parent scope
-    const [showAddInput, setShowAddInput] = useState(false);
     const isDark = themeConfig.mode === "dark";
     const themeClasses = {
       bg: isDark ? "bg-gray-900" : "bg-gray-50",
@@ -878,169 +878,178 @@ export default function HabitTracker() {
   };
 
   // Pink Layout Component (Your existing elaborate layout)
-  const PinkLayout = () => (
-    <div className={`${theme.bgMain} min-h-screen w-full flex flex-col items-center p-2 md:p-4 font-sans transition-colors duration-300`}>
-      {/* Header */}
-      <div className="w-full max-w-7xl">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center">
-            <Calendar className={`${theme.textPrimary} mr-2`} size={28} />
-            <h1 className={`text-3xl md:text-4xl font-bold ${theme.textPrimary}`}>
-              Arch•a•Track
-            </h1>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={toggleColorMode}
-              className={`p-2 rounded-full ${theme.bgButtonHover} transition-colors`}
-              aria-label="Toggle color mode">
-              {themeConfig.mode === 'dark' ? (
-                <Sun className={theme.textPrimary} size={24} />
-              ) : (
-                <Moon className={theme.textPrimary} size={24} />
-              )}
-            </button>
-            <button
-              onClick={() => setShowSettings(true)}
-              className={`p-2 rounded-full ${theme.bgButtonHover} transition-colors`}
-              aria-label="Settings">
-              <Settings className={theme.textPrimary} size={24} />
-            </button>
-          </div>
-        </div>
-
-        {/* Month Navigation */}
-        <div className="flex justify-between items-center w-full max-w-md mx-auto mb-6">
-          <button
-            onClick={() => changeMonth(-1)}
-            className={`p-2 ${theme.bgButtonHover} rounded-full transition-colors duration-200`}>
-            <ChevronLeft size={28} className={theme.textPrimary} />
-          </button>
-          <h2 className={`text-xl md:text-2xl font-medium italic font-mono ${theme.textPrimary}`}>
-            {monthYear}
-          </h2>
-          <button
-            onClick={() => changeMonth(1)}
-            className={`p-2 ${theme.bgButtonHover} rounded-full transition-colors duration-200`}>
-            <ChevronRight size={28} className={theme.textPrimary} />
-          </button>
-        </div>
-
-        {/* Add Habit Input */}
-        <div className="flex gap-2 w-full max-w-xl mx-auto mb-6 relative">
-          <div ref={emojiRef} className="relative w-full">
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 z-20">
+  const PinkLayout = () => {
+    const inputRef = useRef<HTMLInputElement>(null);
+    useEffect(() => {
+      if (showAddInput && inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, [showAddInput]);
+    return (
+      <div className={`${theme.bgMain} min-h-screen w-full flex flex-col items-center p-2 md:p-4 font-sans transition-colors duration-300`}>
+        {/* Header */}
+        <div className="w-full max-w-7xl">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center">
+              <Calendar className={`${theme.textPrimary} mr-2`} size={28} />
+              <h1 className={`text-3xl md:text-4xl font-bold ${theme.textPrimary}`}>
+                Arch•a•Track
+              </h1>
+            </div>
+            <div className="flex gap-2">
               <button
-                onClick={toggleEmojiPicker}
-                className={`p-1 rounded-full ${theme.bgButtonHover} transition-colors`}>
-                <Smile className={theme.textPrimary} size={26} />
+                onClick={toggleColorMode}
+                className={`p-2 rounded-full ${theme.bgButtonHover} transition-colors`}
+                aria-label="Toggle color mode">
+                {themeConfig.mode === 'dark' ? (
+                  <Sun className={theme.textPrimary} size={24} />
+                ) : (
+                  <Moon className={theme.textPrimary} size={24} />
+                )}
+              </button>
+              <button
+                onClick={() => setShowSettings(true)}
+                className={`p-2 rounded-full ${theme.bgButtonHover} transition-colors`}
+                aria-label="Settings">
+                <Settings className={theme.textPrimary} size={24} />
               </button>
             </div>
+          </div>
 
-            {showEmojiPicker && (
-              <div className="absolute top-full left-0 mt-2 z-50 transition-all duration-300 ease-in-out opacity-100 scale-100 -translate-x-1/2">
-                <EmojiPicker
-                  onEmojiClick={handleEmojiSelect}
-                  theme={themeConfig.mode === 'dark' ? Theme.DARK : Theme.LIGHT}
-                />
+          {/* Month Navigation */}
+          <div className="flex justify-between items-center w-full max-w-md mx-auto mb-6">
+            <button
+              onClick={() => changeMonth(-1)}
+              className={`p-2 ${theme.bgButtonHover} rounded-full transition-colors duration-200`}>
+              <ChevronLeft size={28} className={theme.textPrimary} />
+            </button>
+            <h2 className={`text-xl md:text-2xl font-medium italic font-mono ${theme.textPrimary}`}>
+              {monthYear}
+            </h2>
+            <button
+              onClick={() => changeMonth(1)}
+              className={`p-2 ${theme.bgButtonHover} rounded-full transition-colors duration-200`}>
+              <ChevronRight size={28} className={theme.textPrimary} />
+            </button>
+          </div>
+
+          {/* Add Habit Input - always present, toggled with hidden class */}
+          <div className={`flex gap-2 w-full max-w-xl mx-auto mb-6 relative ${showAddInput ? '' : 'hidden'}`}>
+            <div ref={emojiRef} className="relative w-full">
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 z-20">
+                <button
+                  onClick={toggleEmojiPicker}
+                  className={`p-1 rounded-full ${theme.bgButtonHover} transition-colors`}>
+                  <Smile className={theme.textPrimary} size={26} />
+                </button>
+              </div>
+
+              {showEmojiPicker && (
+                <div className="absolute top-full left-0 mt-2 z-50 transition-all duration-300 ease-in-out opacity-100 scale-100 -translate-x-1/2">
+                  <EmojiPicker
+                    onEmojiClick={handleEmojiSelect}
+                    theme={themeConfig.mode === 'dark' ? Theme.DARK : Theme.LIGHT}
+                  />
+                </div>
+              )}
+
+              <input
+                ref={inputRef}
+                type="text"
+                placeholder="Add a new habit..."
+                value={newHabit}
+                onChange={(e) => setNewHabit(e.target.value)}
+                onKeyPress={handleKeyPress}
+                className={`w-full pl-16 p-3 rounded-lg border ${theme.inputBg} text-base md:text-lg focus:outline-none focus:ring-2 ${theme.inputFocus} shadow- transition-all ${theme.inputText}`}
+              />
+            </div>
+            <button
+              onClick={addHabit}
+              className={`${theme.btnPrimary} text-white rounded-lg px-3 md:px-4 transition-colors shadow-md flex items-center justify-center`}>
+              <Plus size={24} />
+            </button>
+          </div>
+
+          {/* Habits Table */}
+          <div className={`w-full overflow-x-auto rounded-lg shadow-lg ${theme.bgCard} mb-6 transition-colors duration-300`}>
+            {habits.length > 0 ? (
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className={theme.bgHeader}>
+                    <th className={`p-3 text-left font-semibold ${theme.textHeader} border-b ${theme.borderMain} sticky left-0 ${theme.bgHeaderSticky} z-10 w-40 md:w-48`}>
+                      Habits
+                    </th>
+                    {Array.from({ length: daysInMonth }, (_, i) => (
+                      <th
+                        key={i}
+                        className={`p-2 min-w-8 w-12 font-medium ${theme.textHeader} border-b ${theme.borderMain} text-center ${
+                          isCurrentMonth && i + 1 === currentDay ? theme.currentDayBg : ""
+                        }`}>
+                        {i + 1}
+                      </th>
+                    ))}
+                    <th className={`p-2 w-12 md:w-16 font-semibold ${theme.textHeader} border-b ${theme.borderMain} text-center sticky right-0 ${theme.bgHeaderSticky} z-10`}>
+                      Delete
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {habits.map((habit, habitIndex) => (
+                    <tr key={habit.id} className={`${theme.bgHover} transition-colors`}>
+                      <td className={`p-2 md:p-3 font-medium ${theme.textBody} border-b ${theme.borderRow} sticky left-0 ${theme.bgSticky} z-10`}>
+                        {habit.name}
+                      </td>
+                      {Array.from({ length: daysInMonth }, (_, dayIndex) => {
+                        const monthValue = getMonthKey();
+                        const isChecked = Boolean(habit.monthlyChecked?.[monthValue]?.[dayIndex]);
+
+                        return (
+                          <td
+                            key={dayIndex}
+                            onClick={() => toggleDay(habitIndex, dayIndex)}
+                            className={`border-b ${theme.borderRow} text-center cursor-pointer ${theme.bgCellHover} transition-colors ${
+                              isCurrentMonth && dayIndex + 1 === currentDay
+                                ? `${theme.currentDayBg} border-2 ${theme.currentDayBorder}`
+                                : ""
+                            }`}>
+                            {isChecked ? (
+                              <div className="w-full h-10 md:h-12 flex items-center justify-center">
+                                <div className={`${theme.checkBg} rounded-full p-1`}>
+                                  <Check className={theme.checkColor} size={18} strokeWidth={3} />
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="w-full h-10 md:h-12 flex items-center justify-center">
+                                <div className="rounded-full p-1">
+                                  <X className={theme.xColor} size={18} strokeWidth={2} />
+                                </div>
+                              </div>
+                            )}
+                          </td>
+                        );
+                      })}
+                      <td className={`p-2 md:p-3 border-b ${theme.borderRow} text-center sticky right-0 ${theme.bgSticky} z-10`}>
+                        <button
+                          onClick={() => deleteHabit(habit.id)}
+                          className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-100/20">
+                          <Trash2 size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className={`py-12 text-center ${theme.textMuted}`}>
+                <p className="text-xl mb-3">No habits added yet</p>
+                <p>Add your first habit using the input above</p>
               </div>
             )}
-
-            <input
-              type="text"
-              placeholder="Add a new habit..."
-              value={newHabit}
-              onChange={(e) => setNewHabit(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className={`w-full pl-16 p-3 rounded-lg border ${theme.inputBg} text-base md:text-lg focus:outline-none focus:ring-2 ${theme.inputFocus} shadow- transition-all ${theme.inputText}`}
-            />
           </div>
-          <button
-            onClick={addHabit}
-            className={`${theme.btnPrimary} text-white rounded-lg px-3 md:px-4 transition-colors shadow-md flex items-center justify-center`}>
-            <Plus size={24} />
-          </button>
-        </div>
-
-        {/* Habits Table */}
-        <div className={`w-full overflow-x-auto rounded-lg shadow-lg ${theme.bgCard} mb-6 transition-colors duration-300`}>
-          {habits.length > 0 ? (
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className={theme.bgHeader}>
-                  <th className={`p-3 text-left font-semibold ${theme.textHeader} border-b ${theme.borderMain} sticky left-0 ${theme.bgHeaderSticky} z-10 w-40 md:w-48`}>
-                    Habits
-                  </th>
-                  {Array.from({ length: daysInMonth }, (_, i) => (
-                    <th
-                      key={i}
-                      className={`p-2 min-w-8 w-12 font-medium ${theme.textHeader} border-b ${theme.borderMain} text-center ${
-                        isCurrentMonth && i + 1 === currentDay ? theme.currentDayBg : ""
-                      }`}>
-                      {i + 1}
-                    </th>
-                  ))}
-                  <th className={`p-2 w-12 md:w-16 font-semibold ${theme.textHeader} border-b ${theme.borderMain} text-center sticky right-0 ${theme.bgHeaderSticky} z-10`}>
-                    Delete
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {habits.map((habit, habitIndex) => (
-                  <tr key={habit.id} className={`${theme.bgHover} transition-colors`}>
-                    <td className={`p-2 md:p-3 font-medium ${theme.textBody} border-b ${theme.borderRow} sticky left-0 ${theme.bgSticky} z-10`}>
-                      {habit.name}
-                    </td>
-                    {Array.from({ length: daysInMonth }, (_, dayIndex) => {
-                      const monthValue = getMonthKey();
-                      const isChecked = Boolean(habit.monthlyChecked?.[monthValue]?.[dayIndex]);
-
-                      return (
-                        <td
-                          key={dayIndex}
-                          onClick={() => toggleDay(habitIndex, dayIndex)}
-                          className={`border-b ${theme.borderRow} text-center cursor-pointer ${theme.bgCellHover} transition-colors ${
-                            isCurrentMonth && dayIndex + 1 === currentDay
-                              ? `${theme.currentDayBg} border-2 ${theme.currentDayBorder}`
-                              : ""
-                          }`}>
-                          {isChecked ? (
-                            <div className="w-full h-10 md:h-12 flex items-center justify-center">
-                              <div className={`${theme.checkBg} rounded-full p-1`}>
-                                <Check className={theme.checkColor} size={18} strokeWidth={3} />
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="w-full h-10 md:h-12 flex items-center justify-center">
-                              <div className="rounded-full p-1">
-                                <X className={theme.xColor} size={18} strokeWidth={2} />
-                              </div>
-                            </div>
-                          )}
-                        </td>
-                      );
-                    })}
-                    <td className={`p-2 md:p-3 border-b ${theme.borderRow} text-center sticky right-0 ${theme.bgSticky} z-10`}>
-                      <button
-                        onClick={() => deleteHabit(habit.id)}
-                        className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-100/20">
-                        <Trash2 size={18} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <div className={`py-12 text-center ${theme.textMuted}`}>
-              <p className="text-xl mb-3">No habits added yet</p>
-              <p>Add your first habit using the input above</p>
-            </div>
-          )}
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Settings Modal Component
   const SettingsModal = () => {
@@ -1146,7 +1155,14 @@ export default function HabitTracker() {
       />
       
       {/* Conditional Layout Rendering */}
-      {themeConfig.type === 'minimal' ? <MinimalLayout /> : <PinkLayout />}
+      {themeConfig.type === 'minimal' ? (
+        <MinimalLayout
+          showAddInput={showAddInput}
+          setShowAddInput={setShowAddInput}
+        />
+      ) : (
+        <PinkLayout />
+      )}
       
       {/* Settings Modal */}
       <SettingsModal />
