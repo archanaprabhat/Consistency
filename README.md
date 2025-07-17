@@ -13,7 +13,7 @@ Just you, your habits, and a beautifully minimal interface that adapts perfectly
 
 ## 🔗 Links
 
--**[YouTube Demo Video](https://www.youtube.com/watch?v=z7ydapMhn6Y)**
+- **[YouTube Demo Video](https://www.youtube.com/watch?v=z7ydapMhn6Y)**
 - **[Live App](https://tracker-nextjs-iqvc.vercel.app/)**
 - **[Trello Roadmap](https://trello.com/b/mxGtC5fF/arch-a-track)** 
 
