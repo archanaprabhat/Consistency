@@ -10,14 +10,12 @@ Just you, your habits, and a beautifully minimal interface that adapts perfectly
 
 > 🚧 **Work in Progress** — This is actively being built with passion and purpose. Each feature is carefully crafted, not rushed. Quality over quantity, always.
 
-## 🎥 Watch the Journey
-
-**[YouTube Demo Video](https://www.youtube.com/watch?v=z7ydapMhn6Y)** —
 
 ## 🔗 Links
 
-- **[Live App](https://tracker-nextjs-iqvc.vercel.app/)** — Try it now
-- **[Trello Roadmap](https://trello.com/b/mxGtC5fF/arch-a-track)** — See what's coming next
+-**[YouTube Demo Video](https://www.youtube.com/watch?v=z7ydapMhn6Y)**
+- **[Live App](https://tracker-nextjs-iqvc.vercel.app/)**
+- **[Trello Roadmap](https://trello.com/b/mxGtC5fF/arch-a-track)** 
 
 ## 🔧 Tech Stack
 
