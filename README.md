@@ -12,7 +12,7 @@ Just you, your habits, and a beautifully minimal interface that adapts perfectly
 
 ## 🎥 Watch the Journey
 
-**[YouTube Demo Video]([https://youtube.com/your-demo-video](https://www.youtube.com/watch?v=z7ydapMhn6Y))** —
+**[YouTube Demo Video](https://www.youtube.com/watch?v=z7ydapMhn6Y)** —
 
 ## 🔗 Links
 
