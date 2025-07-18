@@ -1,5 +1,9 @@
 # Consistency.com 🎯
 
+
+https://github.com/user-attachments/assets/318f6a31-3302-4df8-a914-57b7afb37fbc
+
+
 **The habit tracker that doesn't hate you.** Built for humans who want to build better habits without drowning in feature bloat.
 
 ## What is this?
