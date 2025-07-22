@@ -722,11 +722,6 @@ export default function HabitTracker() {
                   Add new +
                 </button>
                 <button
-                onClick={() => setShowAddInput(!showAddInput)}
-                className={` rounded-lg px-4 transition-colors`}>
-                <Plus size={18} />
-              </button>
-                <button
                   onClick={toggleColorMode}
                   className={`p-2 rounded-lg transition-colors ${themeClasses.hover} ${themeClasses.textSecondary}`}
                   aria-label='Toggle theme'>
