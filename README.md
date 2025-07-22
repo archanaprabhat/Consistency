@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Consistency.com 🎯
 
-## Getting Started
 
-First, run the development server:
+https://github.com/user-attachments/assets/318f6a31-3302-4df8-a914-57b7afb37fbc
+
+
+**The habit tracker that doesn't hate you.** Built for humans who want to build better habits without drowning in feature bloat.
+
+## What is this?
+
+Remember when apps were simple? Consistency.com is a monthly habit tracker that cuts through the noise. Track your daily habits with a clean grid view, add some personality with emojis, and switch between light/dark themes. That's it. No gamification that burns you out, no premium walls that lock basic features.
+
+Just you, your habits, and a beautifully minimal interface that adapts perfectly to your phone and desktop.
+
+> 🚧 **Work in Progress** — This is actively being built with passion and purpose. Each feature is carefully crafted, not rushed. Quality over quantity, always.
+
+
+## 🔗 Links
+
+- **[YouTube Demo Video](https://www.youtube.com/watch?v=z7ydapMhn6Y)**
+- **[Live App](https://tracker-nextjs-iqvc.vercel.app/)**
+- **[Trello Roadmap](https://trello.com/b/mxGtC5fF/arch-a-track)** 
+
+## 🔧 Tech Stack
+
+- **Next.js 14** (App Router) — Modern React framework
+- **TypeScript** — Type safety without the headaches
+- **TailwindCSS** — Utility-first styling that actually works
+- **Firebase** — Backend services (notifications planned)
+- **Vercel** — Deployment that just works
+
+## 🎯 Features
+
+### ✅ What's Built
+- **Monthly Grid View** — See your entire month at a glance
+- **Responsive Design** — Mobile gets cards, desktop gets a beautiful table
+- **Dual Themes** — Minimal clean or colorful pink vibes
+- **Dark/Light Mode** — Easy on the eyes, day or night
+- **Emoji Support** — Add personality to your habits
+- **Local Storage** — Your data stays with you
+- **Smart Validation** — Can't check future dates (obviously)
+- **One-Click Navigation** — Previous/next month navigation
+
+### 🚧 In Progress
+- **Push Notifications** — Gentle reminders (no spam)
+- **Data Export** — Your habits, your data
+- **Habit Streaks** — Optional streak tracking
+- **Weekly View** — Alternative layout for weekly planning
+
+## 🏃‍♂️ Run Locally
 
 ```bash
+# Clone the repo
+git clone https://github.com/yourusername/consistency-tracker.git
+cd consistency-tracker
+
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Open http://localhost:3000 in your browser
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🎭 Philosophy
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Every other habit tracker is bloated with features you don't need. Premium subscriptions for basic functionality. Guilt-inducing streaks. Overwhelming dashboards.
 
-## Learn More
+This app is different. It's built on the belief that **consistency beats perfection**, and **simplicity beats complexity**.
 
-To learn more about Next.js, take a look at the following resources:
+No BS. No bloat. Just a clean, fast, beautiful way to track your habits.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+*Built with ❤️ by a solo developer who believes in the power of small, daily actions.*
