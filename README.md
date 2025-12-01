@@ -21,13 +21,13 @@ Just you, your habits, and a beautifully minimal interface that adapts perfectly
 - **[Live App](https://tracker-nextjs-iqvc.vercel.app/)**
 - **[Trello Roadmap](https://trello.com/b/mxGtC5fF/arch-a-track)** 
 
-## 🔧 Tech Stack
+##  Tech Stack
 
-- **Next.js 14** (App Router) — Modern React framework
-- **TypeScript** — Type safety without the headaches
-- **TailwindCSS** — Utility-first styling that actually works
-- **Firebase** — Backend services (notifications planned)
-- **Vercel** — Deployment that just works
+- **Next.js 14** (App Router)
+- **TypeScript**
+- **TailwindCSS**
+- **Firebase** 
+- **Vercel**
 
 ## 🎯 Features
 
@@ -66,11 +66,11 @@ npm run dev
 
 ## 🎭 Philosophy
 
-Every other habit tracker is bloated with features you don't need. Premium subscriptions for basic functionality. Guilt-inducing streaks. Overwhelming dashboards.
+Every other habit tracker is bloated with features you don't need. Premium subscriptions for basic functionality Overwhelming dashboards.
 
 This app is different. It's built on the belief that **consistency beats perfection**, and **simplicity beats complexity**.
 
 No BS. No bloat. Just a clean, fast, beautiful way to track your habits.
 
 
-*Built with ❤️ by a solo developer who believes in the power of small, daily actions.*
+*Built with ❤️*
