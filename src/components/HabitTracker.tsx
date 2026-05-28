@@ -29,7 +29,7 @@ export default function HabitTracker() {
   const [newHabit, setNewHabit] = useState("");
   const [habits, setHabits] = useState<Habit[]>([]);
   const [themeConfig, setThemeConfig] = useState({
-    type: 'minimal',  // 'minimal' | 'pink'
+    type: 'pink',  // 'minimal' | 'pink'
     mode: 'light'     // 'light' | 'dark'
   });
   const [showSettings, setShowSettings] = useState(false);
@@ -57,6 +57,23 @@ export default function HabitTracker() {
           console.error("Error parsing saved habits:", e);
           setHabits([]);
         }
+      } else {
+        const today = new Date();
+        const monthKey = `${today.getFullYear()} - ${today.getMonth() + 1}`;
+        const day = today.getDate();
+        const checked: Record<number, boolean> = {};
+        
+        if (day >= 1) checked[day - 1] = true;
+        if (day >= 2) checked[day - 2] = true;
+        if (day >= 4) checked[day - 4] = true;
+
+        setHabits([{
+          id: Date.now(),
+          name: "Gym",
+          monthlyChecked: {
+            [monthKey]: checked
+          }
+        }]);
       }
   
       if (savedTheme) {
@@ -929,7 +946,7 @@ export default function HabitTracker() {
           </div>
 
           {/* Add Habit Input - always present, toggled with hidden class */}
-          <div className={`flex gap-2 w-full max-w-xl mx-auto mb-6 relative ${showAddInput ? '' : 'hidden'}`}>
+          <div className={`flex gap-2 w-full max-w-xl mx-auto mb-6 relative`}>
             <div ref={emojiRef} className="relative w-full">
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2 z-20">
                 <button
